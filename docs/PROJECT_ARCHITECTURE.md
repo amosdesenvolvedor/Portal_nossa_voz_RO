@@ -173,3 +173,18 @@ Observacao:
 ## 17. Documentacao de rotas
 
 - Mapa detalhado em `docs/ROUTES.md` com finalidade, tipo, status e fonte futura dos dados.
+
+## 18. Home editorial (Prompt 04)
+
+- Home publica evoluida para composicao jornalistica com:
+	- manchete principal
+	- destaques secundarios
+	- ultimas noticias
+	- secao regional
+	- editorias em destaque
+	- bloco de municipios
+	- slots de publicidade estruturais
+	- sidebar em telas amplas
+- Dados da Home centralizados em `src/data/home-demo.ts` como fonte temporaria tipada.
+- Componentes especificos da Home em `src/components/home`.
+- Integracao futura prevista para curadoria editorial e dados reais sem reescrever a camada de apresentacao.

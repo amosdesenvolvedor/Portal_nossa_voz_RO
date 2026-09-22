@@ -23,7 +23,7 @@ export function NewsCard({
   municipality,
   publishedAt,
   author,
-  href = "#",
+  href = "/noticias",
   imageSrc,
   imageAlt = "Imagem ilustrativa de noticia",
   className,

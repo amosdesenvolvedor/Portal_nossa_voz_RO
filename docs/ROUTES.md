@@ -4,7 +4,7 @@
 
 | Rota | Finalidade | Tipo | Status atual | Fonte futura de dados |
 | --- | --- | --- | --- | --- |
-| / | Entrada publica provisoria com shell | Estatica | Placeholder ativo | CMS/DB para Home editorial (Prompt 04+) |
+| / | Home jornalistica publica | Estatica | Home editorial demonstrativa ativa | DB/CMS para curadoria futura |
 | /design-system | Validacao interna de componentes visuais | Estatica | Ativa | Mantida para evolucao do DS |
 | /noticias | Hub de noticias e categorias | Estatica | Placeholder ativo | DB (news, category) |
 | /noticias/[categoria] | Listagem por categoria | Dinamica | Estrutural com validacao de slug temporario | DB (category, news) |
