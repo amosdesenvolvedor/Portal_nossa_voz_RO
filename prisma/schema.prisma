@@ -1,0 +1,120 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  ADMIN
+  EDITOR
+  AUTHOR
+}
+
+enum NewsStatus {
+  DRAFT
+  IN_REVIEW
+  PUBLISHED
+  ARCHIVED
+}
+
+model User {
+  id        String   @id @default(cuid())
+  name      String
+  email     String   @unique
+  role      UserRole @default(AUTHOR)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  createdNews  News[] @relation("CreatedBy")
+  updatedNews  News[] @relation("UpdatedBy")
+  reviewedNews News[] @relation("ReviewedBy")
+  publishedNews News[] @relation("PublishedBy")
+}
+
+model Region {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  slug      String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  municipalities Municipality[]
+  news           News[]
+}
+
+model Municipality {
+  id        String   @id @default(cuid())
+  name      String
+  slug      String   @unique
+  stateCode String   @default("RO")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  regionId String?
+  region   Region? @relation(fields: [regionId], references: [id], onDelete: SetNull)
+
+  news News[]
+
+  @@unique([name, stateCode])
+}
+
+model Category {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  slug        String   @unique
+  description String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  news News[]
+}
+
+model Tag {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  slug      String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  news News[]
+}
+
+model News {
+  id             String     @id @default(cuid())
+  title          String
+  slug           String     @unique
+  summary        String?
+  content        String
+  status         NewsStatus @default(DRAFT)
+  isAiAssisted   Boolean    @default(false)
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+  publishedAt    DateTime?
+
+  categoryId     String?
+  category       Category?    @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+
+  municipalityId String?
+  municipality   Municipality? @relation(fields: [municipalityId], references: [id], onDelete: SetNull)
+
+  regionId       String?
+  region         Region?       @relation(fields: [regionId], references: [id], onDelete: SetNull)
+
+  tags Tag[]
+
+  createdById    String
+  createdBy      User @relation("CreatedBy", fields: [createdById], references: [id], onDelete: Restrict)
+
+  updatedById    String?
+  updatedBy      User? @relation("UpdatedBy", fields: [updatedById], references: [id], onDelete: SetNull)
+
+  reviewedById   String?
+  reviewedBy     User? @relation("ReviewedBy", fields: [reviewedById], references: [id], onDelete: SetNull)
+
+  publishedById  String?
+  publishedBy    User? @relation("PublishedBy", fields: [publishedById], references: [id], onDelete: SetNull)
+}
