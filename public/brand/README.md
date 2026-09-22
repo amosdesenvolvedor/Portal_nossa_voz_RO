@@ -1,12 +1,12 @@
 # Brand Assets
 
-Place the official logo file at:
+Official logo file in use:
 
-- public/brand/nossa-voz-ro.svg
+- public/brand/nossa-voz-ro.png
 
 Guidelines:
 
-- Keep the official proportion close to 1200 x 400.
-- Prefer SVG as the primary source for website usage.
+- Keep the official proportion 1200 x 400.
+- Current format: PNG (RGBA).
 - Do not redraw or replace the official identity in this repository.
-- Temporary textual placeholders can be used in development pages until the official asset is added.
+- Preserve original colors and aspect ratio when rendering.

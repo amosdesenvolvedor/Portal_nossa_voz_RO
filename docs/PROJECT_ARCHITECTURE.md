@@ -135,3 +135,41 @@ Observacao:
 - Componentes base criados em `src/components/ui`
 - Rota interna de validacao visual em `/design-system`
 - Documentacao complementar em `docs/DESIGN_SYSTEM.md`
+
+## 14. Arquitetura publica e navegacao (Prompt 03)
+
+- Shell publico centralizado no layout raiz com:
+	- Header base
+	- Footer base
+	- skip link para acessibilidade
+- Rotas publicas estruturadas com App Router:
+	- `/`
+	- `/noticias`
+	- `/noticias/[categoria]`
+	- `/noticias/[categoria]/[slug]`
+	- `/municipios`
+	- `/municipios/[slug]`
+	- `/busca`
+	- `/sobre`
+	- `/contato`
+	- `/publicidade`
+	- `/autores`
+	- `/autores/[slug]`
+	- `/politica-de-privacidade`
+- Componente reutilizavel de breadcrumbs para paginas publicas.
+
+## 15. Estrategia temporaria de categorias e municipios
+
+- Configuracao de navegacao centralizada em `src/config/site.ts`.
+- Categorias de menu continuam temporarias e tipadas, sem se tornarem fonte definitiva.
+- Fonte de verdade futura para categorias, municipios e regioes: banco de dados.
+
+## 16. Server e Client Components
+
+- Server Components seguem como padrao para paginas e estrutura publica.
+- Client Components isolados apenas quando necessarios:
+	- menu mobile interativo no header.
+
+## 17. Documentacao de rotas
+
+- Mapa detalhado em `docs/ROUTES.md` com finalidade, tipo, status e fonte futura dos dados.

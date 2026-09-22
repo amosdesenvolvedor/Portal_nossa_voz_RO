@@ -14,14 +14,21 @@ Direcao visual:
 
 ## 2. Logo
 
-Arquivo oficial esperado:
-- public/brand/nossa-voz-ro.svg
+Arquivo oficial integrado:
+- public/brand/nossa-voz-ro.png
+
+Detalhes tecnicos:
+- formato: PNG (RGBA)
+- dimensoes: 1200 x 400
+- proporcao: 3:1
+- componente reutilizavel: BrandLogo (`src/components/brand/BrandLogo.tsx`)
+- uso atual: Header, Footer, Home provisoria e pagina /design-system
 
 Regras:
-- manter proporcao aproximada de 1200 x 400
-- preferir SVG
+- manter proporcao 3:1
 - nao redesenhar ou substituir identidade oficial
-- enquanto o arquivo oficial nao existir, usar apenas placeholder textual discreto em telas internas
+- nao alterar paleta original da marca na imagem
+- evitar recortes que removam elementos essenciais da marca
 
 ## 3. Paleta oficial (tokens de marca)
 

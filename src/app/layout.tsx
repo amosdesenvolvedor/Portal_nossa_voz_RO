@@ -1,6 +1,9 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import type { ReactNode } from "react";
+import { PublicFooter } from "@/components/public/PublicFooter";
+import { PublicHeader } from "@/components/public/PublicHeader";
+import { SITE_CONFIG } from "@/config/site";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -15,10 +18,11 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: "Nossa Voz RO",
-    template: "%s | Nossa Voz RO",
+    default: SITE_CONFIG.name,
+    template: `%s | ${SITE_CONFIG.name}`,
   },
-  description: "A VOZ DE QUEM VIVE AQUI",
+  description: SITE_CONFIG.slogan,
+  applicationName: SITE_CONFIG.applicationName,
 };
 
 export const viewport: Viewport = {
@@ -36,7 +40,19 @@ export default function RootLayout({ children }: RootLayoutProps) {
       lang="pt-BR"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col bg-canvas text-text">{children}</body>
+      <body className="min-h-full flex flex-col bg-canvas text-text">
+        <a
+          href="#main-content"
+          className="sr-only absolute left-3 top-3 z-50 rounded-sm bg-brand-accent px-3 py-2 text-body-sm font-semibold text-text focus:not-sr-only"
+        >
+          Pular para o conteudo
+        </a>
+        <PublicHeader />
+        <div id="main-content" className="flex-1">
+          {children}
+        </div>
+        <PublicFooter />
+      </body>
     </html>
   );
 }

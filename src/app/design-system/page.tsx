@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { BrandLogo } from "@/components/brand/BrandLogo";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Container } from "@/components/ui/Container";
@@ -63,15 +64,13 @@ export default function DesignSystemPage() {
     <div className="bg-canvas py-10 md:py-14">
       <Container as="main" className="space-y-12 md:space-y-16">
         <section className="surface-card animate-fade-in-up p-6 md:p-10">
-          <p className="text-caption font-semibold uppercase tracking-[0.14em] text-brand-secondary">Nossa Voz RO</p>
+          <BrandLogo className="max-w-[220px] md:max-w-[280px]" href="/" />
           <h1 className="text-display mt-3 text-brand-primary">Design System de Fundacao</h1>
           <p className="mt-4 max-w-reading text-body-lg text-text-muted">
             Esta pagina e interna para validar componentes, tokens e padroes visuais da identidade do portal.
             A Home final sera implementada em prompt posterior.
           </p>
-          <p className="mt-3 text-body-sm text-text-muted">
-            Logo oficial: inserir arquivo em <strong>public/brand/nossa-voz-ro.svg</strong>.
-          </p>
+          <p className="mt-3 text-body-sm text-text-muted">Logo oficial integrada a partir de public/brand/nossa-voz-ro.png.</p>
           <div className="mt-6 flex flex-wrap gap-3">
             <Button variant="primary" endIcon={<ArrowRightIcon />}>Ver proximos modulos</Button>
             <Button variant="outline" startIcon={<PlusIcon />}>Criar noticia (demo)</Button>
