@@ -15,6 +15,10 @@ export type ServiceActor = {
   role: UserRole;
 };
 
+function isPrivilegedEditorialRole(role: UserRole) {
+  return role === "EDITOR" || role === "ADMIN";
+}
+
 export type AdminNewsListItem = {
   id: string;
   title: string;
@@ -207,7 +211,7 @@ export async function listAdminReferenceData() {
   };
 }
 
-export async function listAdminNews(rawFilters: unknown) {
+export async function listAdminNews(rawFilters: unknown, actor: ServiceActor) {
   const filters = adminListFiltersSchema.parse(rawFilters ?? {});
 
   const where: Prisma.NewsWhereInput = {
@@ -224,6 +228,10 @@ export async function listAdminNews(rawFilters: unknown) {
         }
       : {}),
   };
+
+  if (!isPrivilegedEditorialRole(actor.role)) {
+    where.OR = [{ createdById: actor.id }, { authorId: actor.id }];
+  }
 
   const [total, rows] = await Promise.all([
     prisma.news.count({ where }),
@@ -275,9 +283,14 @@ export async function getAdminNewsStatusCounts() {
   return counts;
 }
 
-export async function getAdminNewsById(id: string) {
-  return prisma.news.findUnique({
-    where: { id },
+export async function getAdminNewsById(id: string, actor: ServiceActor) {
+  return prisma.news.findFirst({
+    where: isPrivilegedEditorialRole(actor.role)
+      ? { id }
+      : {
+          id,
+          OR: [{ createdById: actor.id }, { authorId: actor.id }],
+        },
     include: {
       category: true,
       municipality: true,
@@ -322,6 +335,10 @@ function buildNewsMutationData(parsed: ReturnType<typeof newsMutationSchema.pars
 export async function createDraftNews(rawInput: unknown, actor: ServiceActor) {
   const parsed = newsMutationSchema.parse(rawInput);
 
+  if (!isPrivilegedEditorialRole(actor.role) && parsed.authorId && parsed.authorId !== actor.id) {
+    throw new Error("FORBIDDEN");
+  }
+
   return prisma.$transaction(async (tx) => {
     const [category, municipality, tags] = await Promise.all([
       tx.category.findUnique({ where: { slug: parsed.categorySlug }, select: { id: true } }),
@@ -352,7 +369,11 @@ export async function createDraftNews(rawInput: unknown, actor: ServiceActor) {
         updatedBy: { connect: { id: actor.id } },
         category: { connect: { id: category.id } },
         municipality: { connect: { id: municipality.id } },
-        ...(parsed.authorId ? { author: { connect: { id: parsed.authorId } } } : {}),
+        ...(isPrivilegedEditorialRole(actor.role)
+          ? parsed.authorId
+            ? { author: { connect: { id: parsed.authorId } } }
+            : {}
+          : { author: { connect: { id: actor.id } } }),
         tags: {
           connect: tags.map((tag) => ({ id: tag.id })),
         },
@@ -377,11 +398,24 @@ export async function updateNewsDraft(newsId: string, rawInput: unknown, actor: 
   return prisma.$transaction(async (tx) => {
     const current = await tx.news.findUnique({
       where: { id: newsId },
-      select: { id: true, status: true, updatedAt: true },
+      select: {
+        id: true,
+        status: true,
+        updatedAt: true,
+        createdById: true,
+        authorId: true,
+      },
     });
 
     if (!current) {
       throw new Error("NOT_FOUND");
+    }
+
+    if (!isPrivilegedEditorialRole(actor.role)) {
+      const canEditOwnRecord = current.createdById === actor.id || current.authorId === actor.id;
+      if (!canEditOwnRecord) {
+        throw new Error("FORBIDDEN");
+      }
     }
 
     if (parsed.expectedUpdatedAt) {
@@ -401,20 +435,37 @@ export async function updateNewsDraft(newsId: string, rawInput: unknown, actor: 
       throw new Error("VALIDATION_ERROR: categoria ou município inválido.");
     }
 
+    if (parsed.authorId) {
+      const author = await tx.user.findUnique({
+        where: { id: parsed.authorId },
+        select: { id: true },
+      });
+
+      if (!author) {
+        throw new Error("VALIDATION_ERROR: autor inválido.");
+      }
+    }
+
+    const canReassignAuthor = isPrivilegedEditorialRole(actor.role);
+    const mutationData: Prisma.NewsUpdateInput = {
+      ...buildNewsMutationData(parsed),
+      category: { connect: { id: category.id } },
+      municipality: { connect: { id: municipality.id } },
+      updatedBy: { connect: { id: actor.id } },
+      tags: {
+        set: tags.map((tag) => ({ id: tag.id })),
+      },
+    };
+
+    if (canReassignAuthor) {
+      mutationData.author = parsed.authorId
+        ? { connect: { id: parsed.authorId } }
+        : { disconnect: true };
+    }
+
     const news = await tx.news.update({
       where: { id: newsId },
-      data: {
-        ...buildNewsMutationData(parsed),
-        category: { connect: { id: category.id } },
-        municipality: { connect: { id: municipality.id } },
-        author: parsed.authorId
-          ? { connect: { id: parsed.authorId } }
-          : { disconnect: true },
-        updatedBy: { connect: { id: actor.id } },
-        tags: {
-          set: tags.map((tag) => ({ id: tag.id })),
-        },
-      },
+      data: mutationData,
       select: {
         id: true,
         slug: true,
@@ -441,11 +492,18 @@ export async function transitionNewsWorkflow(newsId: string, rawInput: unknown, 
   return prisma.$transaction(async (tx) => {
     const current = await tx.news.findUnique({
       where: { id: newsId },
-      select: { id: true, status: true },
+      select: { id: true, status: true, createdById: true, authorId: true },
     });
 
     if (!current) {
       throw new Error("NOT_FOUND");
+    }
+
+    if (!isPrivilegedEditorialRole(actor.role)) {
+      const canOperate = current.createdById === actor.id || current.authorId === actor.id;
+      if (!canOperate) {
+        throw new Error("FORBIDDEN");
+      }
     }
 
     if (!canTransitionStatus(actor.role, current.status, parsed.to)) {

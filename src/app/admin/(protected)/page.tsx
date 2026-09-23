@@ -3,13 +3,17 @@ import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 import { AdminStatusBadge } from "@/components/admin/AdminStatusBadge";
 import { Button } from "@/components/ui/Button";
 import { Divider } from "@/components/ui/Divider";
+import { requireAuthSession } from "@/lib/auth/session";
 import { formatEditorialDateTimeLabel } from "@/lib/editorial/date";
 import { getAdminNewsStatusCounts, listAdminNews } from "@/lib/services/editorial-service";
 
 export default async function AdminDashboardPage() {
+  const session = await requireAuthSession();
+  const actor = { id: session.user.id, role: session.user.role };
+
   const [counts, recent] = await Promise.all([
     getAdminNewsStatusCounts(),
-    listAdminNews({ page: 1, pageSize: 4 }),
+    listAdminNews({ page: 1, pageSize: 4 }, actor),
   ]);
 
   const draftCount = counts.DRAFT;

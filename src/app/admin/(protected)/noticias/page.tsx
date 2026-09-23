@@ -2,6 +2,7 @@ import Link from "next/link";
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 import { AdminStatusBadge } from "@/components/admin/AdminStatusBadge";
 import { Button } from "@/components/ui/Button";
+import { requireAuthSession } from "@/lib/auth/session";
 import type { NewsStatus } from "@/lib/domain/editorial";
 import { formatEditorialDateTimeLabel } from "@/lib/editorial/date";
 import { listAdminNews, listAdminReferenceData } from "@/lib/services/editorial-service";
@@ -19,6 +20,9 @@ const statusFilterOptions: Array<{ label: string; value: "all" | NewsStatus }> =
 ];
 
 export default async function AdminNewsPage({ searchParams }: AdminNewsPageProps) {
+  const session = await requireAuthSession();
+  const actor = { id: session.user.id, role: session.user.role };
+
   const params = await searchParams;
   const selectedStatus = typeof params.status === "string" ? params.status : "all";
   const selectedMunicipality = typeof params.municipio === "string" ? params.municipio : "all";
@@ -34,7 +38,7 @@ export default async function AdminNewsPage({ searchParams }: AdminNewsPageProps
       municipalitySlug: selectedMunicipality === "all" ? undefined : selectedMunicipality,
       authorId: selectedAuthor === "all" ? undefined : selectedAuthor,
       q: query || undefined,
-    }),
+    }, actor),
   ]);
 
   return (

@@ -1,8 +1,18 @@
 import { revalidatePath } from "next/cache";
-import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/options";
 import { getAdminNewsById, updateNewsDraft } from "@/lib/services/editorial-service";
+import {
+  enforceMutationRateLimit,
+  forbiddenResponse,
+  isJsonRequest,
+  isSameOriginRequest,
+  jsonNoStore,
+  rateLimitedResponse,
+  requireAdminSessionUser,
+  unauthenticatedResponse,
+  unsupportedMediaTypeResponse,
+} from "@/lib/security/admin-api";
 import { toApiError } from "@/lib/utils/http-errors";
 
 type Params = {
@@ -11,23 +21,17 @@ type Params = {
 
 export async function GET(_: Request, context: Params) {
   const session = await getServerSession(authOptions);
+  const actor = requireAdminSessionUser(session);
 
-  if (!session?.user?.id || !session.user.role) {
-    return NextResponse.json(
-      {
-        ok: false,
-        code: "UNAUTHENTICATED",
-        message: "Autenticação obrigatória.",
-      },
-      { status: 401 },
-    );
+  if (!actor) {
+    return unauthenticatedResponse();
   }
 
   const { id } = await context.params;
-  const news = await getAdminNewsById(id);
+  const news = await getAdminNewsById(id, actor);
 
   if (!news) {
-    return NextResponse.json(
+    return jsonNoStore(
       {
         ok: false,
         code: "NOT_FOUND",
@@ -37,21 +41,28 @@ export async function GET(_: Request, context: Params) {
     );
   }
 
-  return NextResponse.json({ ok: true, data: news });
+  return jsonNoStore({ ok: true, data: news });
 }
 
 export async function PATCH(request: Request, context: Params) {
   const session = await getServerSession(authOptions);
+  const actor = requireAdminSessionUser(session);
 
-  if (!session?.user?.id || !session.user.role) {
-    return NextResponse.json(
-      {
-        ok: false,
-        code: "UNAUTHENTICATED",
-        message: "Autenticação obrigatória.",
-      },
-      { status: 401 },
-    );
+  if (!actor) {
+    return unauthenticatedResponse();
+  }
+
+  if (!isSameOriginRequest(request)) {
+    return forbiddenResponse("Origem da requisição não permitida.");
+  }
+
+  if (!isJsonRequest(request)) {
+    return unsupportedMediaTypeResponse();
+  }
+
+  const limit = enforceMutationRateLimit(actor.id, "admin-news-patch");
+  if (!limit.allowed) {
+    return rateLimitedResponse(limit.retryAfterSeconds);
   }
 
   try {
@@ -59,8 +70,8 @@ export async function PATCH(request: Request, context: Params) {
     const { id } = await context.params;
 
     const updated = await updateNewsDraft(id, payload, {
-      id: session.user.id,
-      role: session.user.role,
+      id: actor.id,
+      role: actor.role,
     });
 
     revalidatePath("/");
@@ -69,9 +80,9 @@ export async function PATCH(request: Request, context: Params) {
     revalidatePath(`/admin/noticias/${id}`);
     revalidatePath(`/noticias`);
 
-    return NextResponse.json({ ok: true, data: updated });
+    return jsonNoStore({ ok: true, data: updated });
   } catch (error) {
     const handled = toApiError(error);
-    return NextResponse.json(handled.payload, { status: handled.status });
+    return jsonNoStore(handled.payload, { status: handled.status });
   }
 }

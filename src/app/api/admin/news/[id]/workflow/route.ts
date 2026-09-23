@@ -1,8 +1,18 @@
 import { revalidatePath } from "next/cache";
-import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/options";
 import { transitionNewsWorkflow } from "@/lib/services/editorial-service";
+import {
+  enforceMutationRateLimit,
+  forbiddenResponse,
+  isJsonRequest,
+  isSameOriginRequest,
+  jsonNoStore,
+  rateLimitedResponse,
+  requireAdminSessionUser,
+  unauthenticatedResponse,
+  unsupportedMediaTypeResponse,
+} from "@/lib/security/admin-api";
 import { toApiError } from "@/lib/utils/http-errors";
 
 type Params = {
@@ -11,16 +21,23 @@ type Params = {
 
 export async function POST(request: Request, context: Params) {
   const session = await getServerSession(authOptions);
+  const actor = requireAdminSessionUser(session);
 
-  if (!session?.user?.id || !session.user.role) {
-    return NextResponse.json(
-      {
-        ok: false,
-        code: "UNAUTHENTICATED",
-        message: "Autenticação obrigatória.",
-      },
-      { status: 401 },
-    );
+  if (!actor) {
+    return unauthenticatedResponse();
+  }
+
+  if (!isSameOriginRequest(request)) {
+    return forbiddenResponse("Origem da requisição não permitida.");
+  }
+
+  if (!isJsonRequest(request)) {
+    return unsupportedMediaTypeResponse();
+  }
+
+  const limit = enforceMutationRateLimit(actor.id, "admin-news-workflow");
+  if (!limit.allowed) {
+    return rateLimitedResponse(limit.retryAfterSeconds);
   }
 
   try {
@@ -28,8 +45,8 @@ export async function POST(request: Request, context: Params) {
     const { id } = await context.params;
 
     const updated = await transitionNewsWorkflow(id, payload, {
-      id: session.user.id,
-      role: session.user.role,
+      id: actor.id,
+      role: actor.role,
     });
 
     revalidatePath("/");
@@ -39,9 +56,9 @@ export async function POST(request: Request, context: Params) {
     revalidatePath(`/admin/noticias/${id}`);
     revalidatePath(`/noticias`);
 
-    return NextResponse.json({ ok: true, data: updated });
+    return jsonNoStore({ ok: true, data: updated });
   } catch (error) {
     const handled = toApiError(error);
-    return NextResponse.json(handled.payload, { status: handled.status });
+    return jsonNoStore(handled.payload, { status: handled.status });
   }
 }

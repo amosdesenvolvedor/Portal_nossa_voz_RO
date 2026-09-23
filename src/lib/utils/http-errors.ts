@@ -1,3 +1,5 @@
+import { ZodError } from "zod";
+
 export type ApiErrorPayload = {
   ok: false;
   code: "UNAUTHENTICATED" | "FORBIDDEN" | "NOT_FOUND" | "VALIDATION_ERROR" | "CONFLICT" | "INTERNAL_ERROR";
@@ -5,6 +7,16 @@ export type ApiErrorPayload = {
 };
 
 export function toApiError(error: unknown): { status: number; payload: ApiErrorPayload } {
+  if (error instanceof ZodError) {
+    const firstIssue = error.issues[0];
+    const message = firstIssue?.message || "Payload editorial inválido.";
+
+    return {
+      status: 400,
+      payload: { ok: false, code: "VALIDATION_ERROR", message },
+    };
+  }
+
   const rawMessage = error instanceof Error ? error.message : "INTERNAL_ERROR";
 
   if (rawMessage === "FORBIDDEN") {

@@ -1,18 +1,10 @@
 import { z } from "zod";
+import { isSafeHttpUrlOrPath } from "@/lib/security/url";
 
 const slugRegex = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
 function isSafeHref(href: string): boolean {
-  if (href.startsWith("/")) {
-    return true;
-  }
-
-  try {
-    const url = new URL(href);
-    return url.protocol === "http:" || url.protocol === "https:";
-  } catch {
-    return false;
-  }
+  return isSafeHttpUrlOrPath(href);
 }
 
 const inlineTextNodeSchema = z.object({
@@ -75,7 +67,13 @@ export const newsMutationSchema = z.object({
   categorySlug: z.string().trim().min(2).max(120).regex(slugRegex, "Categoria inválida."),
   municipalitySlug: z.string().trim().min(2).max(120).regex(slugRegex, "Município inválido."),
   authorId: z.string().trim().min(1).max(120).optional(),
-  heroImageUrl: z.string().trim().max(1000).optional().or(z.literal("")),
+  heroImageUrl: z
+    .string()
+    .trim()
+    .max(1000)
+    .refine((value) => value === "" || isSafeHttpUrlOrPath(value), "URL de imagem inválida ou insegura.")
+    .optional()
+    .or(z.literal("")),
   heroImageAlt: z.string().trim().max(180).optional().or(z.literal("")),
   heroImageCaption: z.string().trim().max(220).optional().or(z.literal("")),
   heroImageCredit: z.string().trim().max(120).optional().or(z.literal("")),

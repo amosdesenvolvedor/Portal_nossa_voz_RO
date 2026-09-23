@@ -14,7 +14,7 @@ function renderInlineNode(node: EditorialInlineNode, index: number) {
 
     if (isExternal) {
       return (
-        <a key={`${node.href}-${index}`} href={node.href} target="_blank" rel="noreferrer">
+        <a key={`${node.href}-${index}`} href={node.href} target="_blank" rel="noopener noreferrer">
           {node.text}
         </a>
       );

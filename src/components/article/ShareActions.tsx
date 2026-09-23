@@ -92,19 +92,19 @@ export function ShareActions({ title, className }: ShareActionsProps) {
         ) : null}
 
         {whatsappHref ? (
-          <a href={whatsappHref} target="_blank" rel="noreferrer" className={linkClassName}>
+          <a href={whatsappHref} target="_blank" rel="noopener noreferrer" className={linkClassName}>
             WhatsApp
           </a>
         ) : null}
 
         {facebookHref ? (
-          <a href={facebookHref} target="_blank" rel="noreferrer" className={linkClassName}>
+          <a href={facebookHref} target="_blank" rel="noopener noreferrer" className={linkClassName}>
             Facebook
           </a>
         ) : null}
 
         {xHref ? (
-          <a href={xHref} target="_blank" rel="noreferrer" className={linkClassName}>
+          <a href={xHref} target="_blank" rel="noopener noreferrer" className={linkClassName}>
             X
           </a>
         ) : null}

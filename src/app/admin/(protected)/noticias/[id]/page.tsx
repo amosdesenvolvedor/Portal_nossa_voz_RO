@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 import { AdminStatusBadge } from "@/components/admin/AdminStatusBadge";
+import { requireAuthSession } from "@/lib/auth/session";
 import { formatEditorialDateTimeLabel } from "@/lib/editorial/date";
 import { getAdminNewsById } from "@/lib/services/editorial-service";
 
@@ -11,8 +12,11 @@ type AdminNewsDetailsPageProps = {
 };
 
 export default async function AdminNewsDetailsPage({ params }: AdminNewsDetailsPageProps) {
+  const session = await requireAuthSession();
+  const actor = { id: session.user.id, role: session.user.role };
+
   const resolvedParams = await params;
-  const entry = await getAdminNewsById(resolvedParams.id);
+  const entry = await getAdminNewsById(resolvedParams.id, actor);
 
   if (!entry) {
     notFound();

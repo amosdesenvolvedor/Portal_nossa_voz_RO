@@ -2,13 +2,22 @@ import { canUseEditorialAi } from "@/lib/auth/policies";
 import { authOptions } from "@/lib/auth/options";
 import { requestEditorialSuggestion } from "@/lib/ai/editorial";
 import { EDITORIAL_AI_TASKS } from "@/lib/ai/types";
+import {
+  forbiddenResponse,
+  isJsonRequest,
+  isSameOriginRequest,
+  jsonNoStore,
+  rateLimitedResponse,
+  requireAdminSessionUser,
+  unauthenticatedResponse,
+  unsupportedMediaTypeResponse,
+} from "@/lib/security/admin-api";
+import { checkRateLimit } from "@/lib/security/rate-limit";
 import { getServerSession } from "next-auth";
-import { NextResponse } from "next/server";
 import { z } from "zod";
 
 const rateWindowMs = 60_000;
 const maxRequestsPerWindow = 6;
-const requestTracker = new Map<string, { count: number; resetAt: number }>();
 
 const requestSchema = z.object({
   task: z.enum(EDITORIAL_AI_TASKS),
@@ -16,52 +25,24 @@ const requestSchema = z.object({
   context: z.string().max(4000).optional(),
 });
 
-function isRateLimited(userId: string): boolean {
-  const now = Date.now();
-
-  for (const [trackedUserId, entry] of requestTracker) {
-    if (now > entry.resetAt) {
-      requestTracker.delete(trackedUserId);
-    }
-  }
-
-  const current = requestTracker.get(userId);
-
-  if (!current || now > current.resetAt) {
-    requestTracker.set(userId, {
-      count: 1,
-      resetAt: now + rateWindowMs,
-    });
-    return false;
-  }
-
-  if (current.count >= maxRequestsPerWindow) {
-    return true;
-  }
-
-  requestTracker.set(userId, {
-    count: current.count + 1,
-    resetAt: current.resetAt,
-  });
-
-  return false;
-}
-
 export async function POST(request: Request) {
   const session = await getServerSession(authOptions);
+  const actor = requireAdminSessionUser(session);
 
-  if (!session?.user?.id || !session.user.role) {
-    return NextResponse.json(
-      {
-        ok: false,
-        message: "Autenticação obrigatória.",
-      },
-      { status: 401 },
-    );
+  if (!actor) {
+    return unauthenticatedResponse();
   }
 
-  if (!canUseEditorialAi(session.user.role)) {
-    return NextResponse.json(
+  if (!isSameOriginRequest(request)) {
+    return forbiddenResponse("Origem da requisição não permitida.");
+  }
+
+  if (!isJsonRequest(request)) {
+    return unsupportedMediaTypeResponse();
+  }
+
+  if (!canUseEditorialAi(actor.role)) {
+    return jsonNoStore(
       {
         ok: false,
         message: "Sem permissão para usar assistência por IA.",
@@ -70,21 +51,16 @@ export async function POST(request: Request) {
     );
   }
 
-  if (isRateLimited(session.user.id)) {
-    return NextResponse.json(
-      {
-        ok: false,
-        message: "Limite temporário de uso da IA atingido. Tente novamente em instantes.",
-      },
-      { status: 429 },
-    );
+  const limit = checkRateLimit(`admin-ai:${actor.id}`, maxRequestsPerWindow, rateWindowMs);
+  if (!limit.allowed) {
+    return rateLimitedResponse(limit.retryAfterSeconds);
   }
 
   const payload = await request.json().catch(() => null);
   const parsed = requestSchema.safeParse(payload);
 
   if (!parsed.success) {
-    return NextResponse.json(
+    return jsonNoStore(
       {
         ok: false,
         message: "Parâmetros inválidos para assistência editorial.",
@@ -96,7 +72,7 @@ export async function POST(request: Request) {
   const result = await requestEditorialSuggestion(parsed.data);
 
   if (!result.ok) {
-    return NextResponse.json(
+    return jsonNoStore(
       {
         ok: false,
         code: result.error.code,
@@ -106,7 +82,7 @@ export async function POST(request: Request) {
     );
   }
 
-  return NextResponse.json({
+  return jsonNoStore({
     ok: true,
     suggestion: result.suggestion,
     usageLabel: result.usageLabel,
