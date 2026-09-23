@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { Breadcrumbs } from "@/components/public/Breadcrumbs";
 import { Container } from "@/components/ui/Container";
@@ -5,7 +6,30 @@ import { NewsCard } from "@/components/ui/NewsCard";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 import { formatEditorialDateTimeLabel } from "@/lib/editorial/date";
 import { buildCategoryHref, buildNewsHref } from "@/lib/editorial/urls";
+import { defaultSocialImage } from "@/lib/seo/metadata";
+import { absoluteUrl } from "@/lib/seo/urls";
 import { listPublishedNews } from "@/lib/services/editorial-service";
+
+export const metadata: Metadata = {
+  title: "Notícias",
+  description: "Cobertura pública com notícias publicadas no fluxo editorial do Nossa Voz RO.",
+  alternates: {
+    canonical: absoluteUrl("/noticias"),
+  },
+  openGraph: {
+    type: "website",
+    title: "Notícias",
+    description: "Cobertura pública com notícias publicadas no fluxo editorial do Nossa Voz RO.",
+    url: absoluteUrl("/noticias"),
+    images: defaultSocialImage(),
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Notícias",
+    description: "Cobertura pública com notícias publicadas no fluxo editorial do Nossa Voz RO.",
+    images: defaultSocialImage().map((image) => image.url),
+  },
+};
 
 export default async function NoticiasPage() {
   const items = await listPublishedNews({ limit: 30 });

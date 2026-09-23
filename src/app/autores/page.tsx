@@ -1,7 +1,31 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { Container } from "@/components/ui/Container";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 import { prisma } from "@/lib/db/prisma";
+import { defaultSocialImage } from "@/lib/seo/metadata";
+import { absoluteUrl } from "@/lib/seo/urls";
+
+export const metadata: Metadata = {
+  title: "Autores",
+  description: "Perfis públicos de autoria do Nossa Voz RO com matérias publicadas.",
+  alternates: {
+    canonical: absoluteUrl("/autores"),
+  },
+  openGraph: {
+    type: "website",
+    title: "Autores",
+    description: "Perfis públicos de autoria do Nossa Voz RO com matérias publicadas.",
+    url: absoluteUrl("/autores"),
+    images: defaultSocialImage(),
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Autores",
+    description: "Perfis públicos de autoria do Nossa Voz RO com matérias publicadas.",
+    images: defaultSocialImage().map((image) => image.url),
+  },
+};
 
 export default async function AutoresPage() {
   const [authors, grouped] = await Promise.all([

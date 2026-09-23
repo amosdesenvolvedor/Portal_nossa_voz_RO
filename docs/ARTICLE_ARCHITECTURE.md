@@ -105,9 +105,37 @@ Implementacao:
 
 ## Metadata
 
-- `generateMetadata` na rota da noticia
-- campos atuais: `title`, `description`
-- Open Graph, Twitter Cards, canonical e JSON-LD ficam para Prompt 10
+- `generateMetadata` dinamico na rota da noticia
+- campos atuais: `title`, `description`, `canonical`, Open Graph e Twitter
+- filtro editorial mantido: somente noticia `PUBLISHED` gera metadata publica de artigo
+
+## Canonical
+
+- canonical absoluto por rota real:
+	- `/noticias/[categoria]/[slug]`
+- URL absoluta centralizada via helper de SEO.
+
+## Open Graph e social cards
+
+- tipo da pagina de noticia: `article`
+- campos aplicados quando disponiveis:
+	- `title`
+	- `description`
+	- `url`
+	- `images`
+	- `publishedTime`
+	- `modifiedTime`
+	- `authors`
+	- `section`
+	- `tags`
+- Twitter/X card configurado como `summary_large_image`.
+
+## JSON-LD
+
+- tipo estruturado aplicado: `NewsArticle`
+- montagem centralizada em `src/lib/seo/json-ld.ts`
+- serializacao segura para script `application/ld+json`
+- usa apenas dados persistidos reais da noticia publicada
 
 ## Acessibilidade
 

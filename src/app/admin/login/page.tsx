@@ -3,12 +3,14 @@ import { redirect } from "next/navigation";
 import { BrandLogo } from "@/components/brand/BrandLogo";
 import { AdminLoginForm } from "@/app/admin/login/AdminLoginForm";
 import { getAuthSession } from "@/lib/auth/session";
+import { NO_INDEX_NO_FOLLOW } from "@/lib/seo/metadata";
+import { absoluteUrl } from "@/lib/seo/urls";
 
 export const metadata: Metadata = {
   title: "Login administrativo",
-  robots: {
-    index: false,
-    follow: false,
+  robots: NO_INDEX_NO_FOLLOW,
+  alternates: {
+    canonical: absoluteUrl("/admin/login"),
   },
 };
 

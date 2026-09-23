@@ -1,10 +1,14 @@
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { cache } from "react";
 import { Breadcrumbs } from "@/components/public/Breadcrumbs";
 import { Container } from "@/components/ui/Container";
 import { NewsCard } from "@/components/ui/NewsCard";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 import { formatEditorialDateTimeLabel } from "@/lib/editorial/date";
 import { buildNewsHref } from "@/lib/editorial/urls";
+import { defaultSocialImage } from "@/lib/seo/metadata";
+import { absoluteUrl } from "@/lib/seo/urls";
 import { listPublishedNewsByCategorySlug } from "@/lib/services/editorial-service";
 
 type CategoryPageProps = {
@@ -13,9 +17,48 @@ type CategoryPageProps = {
   }>;
 };
 
+const getPublishedCategoryNews = cache(async (categorySlug: string) => listPublishedNewsByCategorySlug(categorySlug));
+
+export async function generateMetadata({ params }: CategoryPageProps): Promise<Metadata> {
+  const resolvedParams = await params;
+  const items = await getPublishedCategoryNews(resolvedParams.categoria);
+  const categoryName = items[0]?.category?.name;
+
+  if (!categoryName) {
+    return {
+      title: "Categoria não encontrada",
+      robots: { index: false, follow: false },
+    };
+  }
+
+  const description = `Notícias publicadas da editoria ${categoryName} no Nossa Voz RO.`;
+  const categoryPath = `/noticias/${resolvedParams.categoria}`;
+
+  return {
+    title: categoryName,
+    description,
+    alternates: {
+      canonical: absoluteUrl(categoryPath),
+    },
+    openGraph: {
+      type: "website",
+      title: categoryName,
+      description,
+      url: absoluteUrl(categoryPath),
+      images: defaultSocialImage(),
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: categoryName,
+      description,
+      images: defaultSocialImage().map((image) => image.url),
+    },
+  };
+}
+
 export default async function CategoryPage({ params }: CategoryPageProps) {
   const resolvedParams = await params;
-  const items = await listPublishedNewsByCategorySlug(resolvedParams.categoria);
+  const items = await getPublishedCategoryNews(resolvedParams.categoria);
 
   if (items.length === 0) {
     notFound();

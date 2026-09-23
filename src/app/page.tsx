@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { AdSlot } from "@/components/home/AdSlot";
 import { CategorySection } from "@/components/home/CategorySection";
@@ -13,7 +14,33 @@ import type { CategoryBlock, DemoStory, HomeDemoData, LatestItem } from "@/data/
 import { HOME_DEMO_DATA } from "@/data/home-demo";
 import { formatEditorialDateTimeLabel, formatEditorialTimeLabel } from "@/lib/editorial/date";
 import { buildNewsHref } from "@/lib/editorial/urls";
+import { SEO_CONFIG } from "@/lib/seo/config";
+import { defaultSocialImage } from "@/lib/seo/metadata";
+import { absoluteUrl } from "@/lib/seo/urls";
 import { listPublishedNews } from "@/lib/services/editorial-service";
+
+export const metadata: Metadata = {
+  title: "Nossa Voz RO",
+  description: SEO_CONFIG.siteDescription,
+  alternates: {
+    canonical: absoluteUrl("/"),
+  },
+  openGraph: {
+    type: "website",
+    title: "Nossa Voz RO",
+    description: SEO_CONFIG.siteDescription,
+    url: absoluteUrl("/"),
+    siteName: SEO_CONFIG.siteName,
+    locale: SEO_CONFIG.siteLocale,
+    images: defaultSocialImage(),
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Nossa Voz RO",
+    description: SEO_CONFIG.siteDescription,
+    images: defaultSocialImage().map((image) => image.url),
+  },
+};
 
 function toStory(item: Awaited<ReturnType<typeof listPublishedNews>>[number]): DemoStory {
   const publishedAt = item.publishedAt ?? item.updatedAt;

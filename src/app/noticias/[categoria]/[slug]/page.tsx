@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { cache } from "react";
 import { AdSlot } from "@/components/home/AdSlot";
 import { ArticleBody } from "@/components/article/ArticleBody";
 import { ShareActions } from "@/components/article/ShareActions";
@@ -19,6 +20,9 @@ import type { EditorialContentBlock } from "@/lib/editorial/article-blocks";
 import { formatEditorialDateTimeLabel, hasEditorialUpdate } from "@/lib/editorial/date";
 import { editorialContentBlocksSchema } from "@/lib/editorial/validation";
 import { buildCategoryHref, buildNewsHref } from "@/lib/editorial/urls";
+import { buildNewsArticleJsonLd, serializeJsonLd } from "@/lib/seo/json-ld";
+import { resolveSocialImage, truncateDescription } from "@/lib/seo/metadata";
+import { absoluteUrl } from "@/lib/seo/urls";
 import {
   getPublishedArticleByRoute,
   getRelatedPublishedArticles,
@@ -31,26 +35,64 @@ type NewsArticlePageProps = {
   }>;
 };
 
+const getPublishedArticle = cache(async (categorySlug: string, articleSlug: string) =>
+  getPublishedArticleByRoute(categorySlug, articleSlug),
+);
+
 export async function generateMetadata({ params }: NewsArticlePageProps): Promise<Metadata> {
   const resolvedParams = await params;
-  const article = await getPublishedArticleByRoute(resolvedParams.categoria, resolvedParams.slug);
+  const article = await getPublishedArticle(resolvedParams.categoria, resolvedParams.slug);
 
   if (!article) {
     return {
       title: "Noticia nao encontrada",
       description: "A notícia solicitada não está disponível.",
+      robots: { index: false, follow: false },
     };
   }
 
+  const description = truncateDescription(article.summary || article.content);
+  const articlePath = `/noticias/${resolvedParams.categoria}/${resolvedParams.slug}`;
+  const socialImages = resolveSocialImage({
+    url: article.heroImageUrl,
+    alt: article.heroImageAlt,
+  });
+
+  const authorName = article.author?.name || article.createdBy.name;
+  const tags = article.tags.map((tag) => tag.name);
+
   return {
     title: article.title,
-    description: article.summary,
+    description,
+    alternates: {
+      canonical: absoluteUrl(articlePath),
+    },
+    openGraph: {
+      type: "article",
+      title: article.title,
+      description,
+      url: absoluteUrl(articlePath),
+      locale: "pt_BR",
+      siteName: "Nossa Voz RO",
+      images: socialImages,
+      publishedTime: article.publishedAt?.toISOString(),
+      modifiedTime: article.updatedAt.toISOString(),
+      authors: [authorName],
+      section: article.category?.name ?? undefined,
+      tags,
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: article.title,
+      description,
+      images: socialImages.map((image) => image.url),
+    },
   };
 }
 
 export default async function NewsArticlePage({ params }: NewsArticlePageProps) {
   const resolvedParams = await params;
-  const article = await getPublishedArticleByRoute(resolvedParams.categoria, resolvedParams.slug);
+  const article = await getPublishedArticle(resolvedParams.categoria, resolvedParams.slug);
 
   if (!article) {
     notFound();
@@ -73,7 +115,22 @@ export default async function NewsArticlePage({ params }: NewsArticlePageProps) 
   const updatedLabel = updatedIso ? formatEditorialDateTimeLabel(updatedIso) : "";
   const categoryLabel = article.category?.name ?? "Notícias";
   const authorName = article.author?.name ?? article.createdBy.name;
+  const authorSlug = article.author?.publicSlug ?? undefined;
   const locationLabel = [article.municipality?.name, article.region?.name].filter(Boolean).join(" • ") || undefined;
+  const articlePath = `/noticias/${resolvedParams.categoria}/${resolvedParams.slug}`;
+
+  const newsArticleJsonLd = buildNewsArticleJsonLd({
+    headline: article.title,
+    description: truncateDescription(article.summary || article.content),
+    canonicalPath: articlePath,
+    datePublished: publishedIso,
+    dateModified: updatedIso,
+    section: article.category?.name ?? undefined,
+    tags: article.tags.map((tag) => tag.name),
+    authorName,
+    authorPath: authorSlug ? `/autores/${authorSlug}` : undefined,
+    imageUrl: article.heroImageUrl,
+  });
 
   return (
     <main className="bg-canvas py-6 md:py-8">
@@ -193,6 +250,11 @@ export default async function NewsArticlePage({ params }: NewsArticlePageProps) 
           <AdSlot position="ARTICLE_BOTTOM" />
         </div>
       </Container>
+
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: serializeJsonLd(newsArticleJsonLd) }}
+      />
     </main>
   );
 }

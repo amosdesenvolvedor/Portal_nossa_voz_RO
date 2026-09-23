@@ -1,7 +1,31 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { Container } from "@/components/ui/Container";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 import { prisma } from "@/lib/db/prisma";
+import { defaultSocialImage } from "@/lib/seo/metadata";
+import { absoluteUrl } from "@/lib/seo/urls";
+
+export const metadata: Metadata = {
+  title: "Municípios",
+  description: "Cobertura regional organizada por municípios ativos na base editorial do Nossa Voz RO.",
+  alternates: {
+    canonical: absoluteUrl("/municipios"),
+  },
+  openGraph: {
+    type: "website",
+    title: "Municípios",
+    description: "Cobertura regional organizada por municípios ativos na base editorial do Nossa Voz RO.",
+    url: absoluteUrl("/municipios"),
+    images: defaultSocialImage(),
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Municípios",
+    description: "Cobertura regional organizada por municípios ativos na base editorial do Nossa Voz RO.",
+    images: defaultSocialImage().map((image) => image.url),
+  },
+};
 
 export default async function MunicipiosPage() {
   const [municipalities, grouped] = await Promise.all([

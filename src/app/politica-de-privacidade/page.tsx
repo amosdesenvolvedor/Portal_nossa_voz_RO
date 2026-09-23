@@ -1,4 +1,22 @@
+import type { Metadata } from "next";
 import { PagePlaceholder } from "@/components/public/PagePlaceholder";
+import { defaultSocialImage } from "@/lib/seo/metadata";
+import { absoluteUrl } from "@/lib/seo/urls";
+
+export const metadata: Metadata = {
+  title: "Política de Privacidade",
+  description: "Política de privacidade e tratamento de dados do portal Nossa Voz RO.",
+  alternates: {
+    canonical: absoluteUrl("/politica-de-privacidade"),
+  },
+  openGraph: {
+    type: "website",
+    title: "Política de Privacidade",
+    description: "Política de privacidade e tratamento de dados do portal Nossa Voz RO.",
+    url: absoluteUrl("/politica-de-privacidade"),
+    images: defaultSocialImage(),
+  },
+};
 
 export default function PoliticaPrivacidadePage() {
   return (

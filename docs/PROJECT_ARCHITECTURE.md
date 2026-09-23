@@ -110,7 +110,7 @@ Motivos:
 - permite evolucao para breadcrumbs e metadata dinamica
 
 Observacao:
-- implementacao completa de sitemap, canonical, robots, Open Graph e dados estruturados fica para fases posteriores.
+- Prompt 10 implementou metadata dinamica, canonical, Open Graph, JSON-LD, sitemap e robots com base em conteudo persistido.
 
 ## 11. Seguranca (fundacao)
 
@@ -263,3 +263,24 @@ Observacao:
 
 Documentacao complementar:
 - `docs/DATA_PERSISTENCE.md`
+
+## 25. SEO e descoberta (Prompt 10)
+
+- URL publica centralizada via ambiente (`NEXT_PUBLIC_SITE_URL`) com fallback local seguro.
+- Helper de URL absoluta para canonical, Open Graph, Twitter e JSON-LD.
+- Metadata base no root layout com `metadataBase`, OG base e Twitter cards.
+- Metadata dinamica aplicada em:
+	- noticias por categoria
+	- noticia individual
+	- municipios (detalhe)
+	- autores (detalhe)
+- JSON-LD `NewsArticle` para noticias publicadas.
+- Sitemap dinamico em `src/app/sitemap.ts` com filtros de visibilidade editorial.
+- Robots dinamico em `src/app/robots.ts` com comportamento por ambiente.
+- Regras de indexacao interna:
+	- `/admin` e `/admin/login`: noindex/nofollow
+	- `/design-system`: noindex/nofollow
+	- `/busca`: noindex/follow
+
+Documentacao complementar:
+- `docs/SEO_AND_DISCOVERY.md`

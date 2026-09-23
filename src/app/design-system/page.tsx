@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { BrandLogo } from "@/components/brand/BrandLogo";
 import { EditorialByline } from "@/components/editorial/EditorialByline";
@@ -12,6 +13,17 @@ import { Container } from "@/components/ui/Container";
 import { Divider } from "@/components/ui/Divider";
 import { NewsCard } from "@/components/ui/NewsCard";
 import { SectionHeading } from "@/components/ui/SectionHeading";
+import { NO_INDEX_NO_FOLLOW } from "@/lib/seo/metadata";
+import { absoluteUrl } from "@/lib/seo/urls";
+
+export const metadata: Metadata = {
+  title: "Design System",
+  description: "Página interna de validação visual do design system.",
+  robots: NO_INDEX_NO_FOLLOW,
+  alternates: {
+    canonical: absoluteUrl("/design-system"),
+  },
+};
 
 const colorTokens = [
   { label: "brand-primary", className: "bg-brand-primary", textClassName: "text-text-inverse" },

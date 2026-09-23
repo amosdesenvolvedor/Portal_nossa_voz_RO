@@ -18,12 +18,16 @@
 | /autores | Hub de autores | Estatica | Lista persistente de perfis ativos | DB (users/authors) |
 | /autores/[slug] | Perfil de autor | Dinamica | Persistente com assinaturas publicadas | DB (author + news) |
 | /politica-de-privacidade | Institucional juridica | Estatica | Placeholder ativo | Conteudo juridico oficial |
+| /sitemap.xml | Sitemap dinamico para descoberta | Sistema | Ativo | DB (conteudo publico) |
+| /robots.txt | Politica de crawling por ambiente | Sistema | Ativo | Configuracao SEO |
 | not-found | Tratamento de 404 | Sistema | Ativo | N/A |
 
 ## Observacoes
 
 - Slugs publicos sao amigaveis e legiveis.
 - Fonte de verdade editorial publica agora e o banco de dados para conteudo publicado.
+- Descoberta publica considera apenas conteudo `PUBLISHED`.
+- Rotas internas (`/admin`, `/design-system`) permanecem fora da indexacao.
 
 ## Estrutura administrativa (Prompt 08)
 

@@ -1,0 +1,14 @@
+<svg width="1200" height="630" viewBox="0 0 1200 630" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">Nossa Voz RO — A Voz de Quem Vive Aqui</title>
+  <desc id="desc">Imagem social padrão do portal Nossa Voz RO para compartilhamento.</desc>
+  <rect width="1200" height="630" fill="#0E2B1B"/>
+  <rect x="56" y="56" width="1088" height="518" rx="24" fill="#133A24" stroke="#1F5A37" stroke-width="2"/>
+  <g opacity="0.14" fill="#F5C84B">
+    <circle cx="1090" cy="110" r="160"/>
+    <circle cx="140" cy="560" r="190"/>
+  </g>
+  <image href="/brand/nossa-voz-ro.png" x="190" y="190" width="820" height="273" preserveAspectRatio="xMidYMid meet"/>
+  <text x="600" y="528" fill="#F6E9BF" text-anchor="middle" font-family="Arial, sans-serif" font-size="46" font-weight="700" letter-spacing="1.2">
+    A VOZ DE QUEM VIVE AQUI
+  </text>
+</svg>

@@ -1,4 +1,6 @@
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { cache } from "react";
 import { Breadcrumbs } from "@/components/public/Breadcrumbs";
 import { Container } from "@/components/ui/Container";
 import { NewsCard } from "@/components/ui/NewsCard";
@@ -6,6 +8,8 @@ import { SectionHeading } from "@/components/ui/SectionHeading";
 import { prisma } from "@/lib/db/prisma";
 import { formatEditorialDateTimeLabel } from "@/lib/editorial/date";
 import { buildNewsHref } from "@/lib/editorial/urls";
+import { defaultSocialImage, truncateDescription } from "@/lib/seo/metadata";
+import { absoluteUrl } from "@/lib/seo/urls";
 
 type AuthorPageProps = {
   params: Promise<{
@@ -13,10 +17,9 @@ type AuthorPageProps = {
   }>;
 };
 
-export default async function AuthorPage({ params }: AuthorPageProps) {
-  const resolvedParams = await params;
-  const author = await prisma.user.findFirst({
-    where: { publicSlug: resolvedParams.slug, isAuthorProfileActive: true },
+const getPublicAuthorPageData = cache(async (slug: string) =>
+  prisma.user.findFirst({
+    where: { publicSlug: slug, isAuthorProfileActive: true },
     include: {
       assignedAuthoredNews: {
         where: { status: "PUBLISHED" },
@@ -24,7 +27,49 @@ export default async function AuthorPage({ params }: AuthorPageProps) {
         orderBy: [{ publishedAt: "desc" }, { updatedAt: "desc" }],
       },
     },
-  });
+  }),
+);
+
+export async function generateMetadata({ params }: AuthorPageProps): Promise<Metadata> {
+  const resolvedParams = await params;
+  const author = await getPublicAuthorPageData(resolvedParams.slug);
+
+  if (!author) {
+    return {
+      title: "Autor não encontrado",
+      robots: { index: false, follow: false },
+    };
+  }
+
+  const path = `/autores/${resolvedParams.slug}`;
+  const title = author.name;
+  const description = truncateDescription(author.bio || `Perfil público de ${author.name} no Nossa Voz RO.`);
+
+  return {
+    title,
+    description,
+    alternates: {
+      canonical: absoluteUrl(path),
+    },
+    openGraph: {
+      type: "profile",
+      title,
+      description,
+      url: absoluteUrl(path),
+      images: defaultSocialImage(),
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      images: defaultSocialImage().map((image) => image.url),
+    },
+  };
+}
+
+export default async function AuthorPage({ params }: AuthorPageProps) {
+  const resolvedParams = await params;
+  const author = await getPublicAuthorPageData(resolvedParams.slug);
 
   if (!author) {
     notFound();
