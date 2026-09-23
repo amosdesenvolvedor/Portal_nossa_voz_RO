@@ -96,3 +96,18 @@ Regras principais:
 ## Observacao de evolucao
 
 Nesta etapa o fluxo editorial ainda e demonstrativo para persistencia. No Prompt 09, as acoes administrativas serao conectadas ao banco com mutacoes persistentes e auditoria completa.
+
+## Validacao operacional local (Prompt 08.1)
+
+Validacoes reais executadas em ambiente local:
+- PostgreSQL acessivel em `127.0.0.1:5432`
+- migrations sincronizadas com Prisma
+- bootstrap do ADMIN executado com sucesso
+- login real, sessao real, reload autenticado e logout validados
+- `/admin` protegido sem sessao
+- APIs administrativas protegidas sem sessao (`401`)
+- teste de credencial invalida negado sem vazamento de detalhes sensiveis
+- bloqueio server-side confirmado para tentativa de publicacao por `AUTHOR`
+
+Resultado:
+- fundacao de autenticacao/autorizacao do Prompt 08 validada operacionalmente.

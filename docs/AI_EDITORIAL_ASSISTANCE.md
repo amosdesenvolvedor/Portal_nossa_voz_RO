@@ -132,16 +132,19 @@ Garantias editoriais mantidas:
 
 ## Validacao tecnica realizada
 
-Teste minimo real executado nesta etapa:
-- uma chamada server-side controlada ao OpenRouter
+Teste minimo real executado no fluxo administrativo autenticado:
+- uma chamada real via `POST /api/admin/ai/suggest`
 - modelo utilizado: `openrouter/free`
-- tarefa validada: revisao ortografica de titulo demonstrativo
+- tarefa validada: `proofread`
+- texto de entrada curto e neutro
 
 Resultado observado:
 - resposta HTTP `200`
 - sugestao retornada com sucesso
-- nenhum segredo exposto no relatorio
-- nenhum conteudo publicado automaticamente
+- sem exposicao de segredo no cliente
+- sem publicacao automatica
+- sem alteracao automatica de status
+- aplicacao da sugestao permanece manual (acao explicita do editor)
 
 Observacao:
-- essa validacao confirma a configuracao basica do provedor e do modelo no ambiente local, mas nao altera a regra editorial do projeto: toda saida continua sendo apenas `SUGESTAO_EDITORIAL`.
+- a validacao confirma integracao funcional backend-admin-provedor no ambiente local, preservando a regra editorial: toda saida continua sendo `SUGESTAO_EDITORIAL`.
