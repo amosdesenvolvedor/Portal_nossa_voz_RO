@@ -108,3 +108,19 @@ Fluxo previsto:
 Direcao futura:
 - registrar `isAiAssisted = true` quando sugestoes forem efetivamente aproveitadas
 - trocar provedor mantendo o contrato de `editorial.ts`
+
+## Validacao tecnica realizada
+
+Teste minimo real executado nesta etapa:
+- uma chamada server-side controlada ao OpenRouter
+- modelo utilizado: `openrouter/free`
+- tarefa validada: revisao ortografica de titulo demonstrativo
+
+Resultado observado:
+- resposta HTTP `200`
+- sugestao retornada com sucesso
+- nenhum segredo exposto no relatorio
+- nenhum conteudo publicado automaticamente
+
+Observacao:
+- essa validacao confirma a configuracao basica do provedor e do modelo no ambiente local, mas nao altera a regra editorial do projeto: toda saida continua sendo apenas `SUGESTAO_EDITORIAL`.
