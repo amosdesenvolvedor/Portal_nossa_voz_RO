@@ -109,6 +109,27 @@ Direcao futura:
 - registrar `isAiAssisted = true` quando sugestoes forem efetivamente aproveitadas
 - trocar provedor mantendo o contrato de `editorial.ts`
 
+## Integracao administrativa implementada (Prompt 08)
+
+Integracao ativa no painel:
+- pagina administrativa de edicao inicial em `/admin/noticias/nova`
+- endpoint interno protegido em `POST /api/admin/ai/suggest`
+
+Regras aplicadas na integracao:
+- apenas usuario autenticado do admin pode acionar IA
+- permissao passa por policy centralizada de role
+- protecao basica de taxa por usuario autenticado no endpoint
+- prompts continuam server-side (nenhum prompt no frontend)
+- resposta sempre exibida como sugestao separada
+- aplicacao da sugestao exige acao explicita do editor
+- falhas de IA nao apagam conteudo do formulario
+
+Garantias editoriais mantidas:
+- IA nao altera status para `PUBLISHED`
+- IA nao publica conteudo
+- IA nao aprova conteudo
+- autoridade editorial continua humana
+
 ## Validacao tecnica realizada
 
 Teste minimo real executado nesta etapa:

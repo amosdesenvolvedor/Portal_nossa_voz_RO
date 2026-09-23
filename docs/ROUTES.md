@@ -25,3 +25,28 @@
 - Slugs publicos sao amigaveis e legiveis.
 - Arrays de categorias na navegacao sao temporarios e centralizados em `src/config/site.ts`.
 - Fonte de verdade editorial sera o banco de dados nas proximas etapas.
+
+## Estrutura administrativa (Prompt 08)
+
+| Rota | Finalidade | Tipo | Status atual | Protecao |
+| --- | --- | --- | --- | --- |
+| /admin/login | Autenticacao administrativa | Estatica | Ativa | Publica (noindex) |
+| /admin | Dashboard editorial | Estatica | Ativa com dados demonstrativos | Sessao obrigatoria |
+| /admin/noticias | Listagem administrativa de noticias | Estatica + filtros de query | Ativa com dados demonstrativos | Sessao obrigatoria |
+| /admin/noticias/nova | Editor inicial por blocos + IA assistiva | Estatica interativa | Ativa (sem persistencia final) | Sessao obrigatoria |
+| /admin/noticias/[id] | Detalhe estrutural de noticia administrativa | Dinamica | Estrutural com base demonstrativa | Sessao obrigatoria |
+| /admin/revisao | Fila de itens em revisao | Estatica | Ativa com base demonstrativa | Sessao obrigatoria |
+| /admin/categorias | Estrutura administrativa de categorias | Estatica | Ativa com base demonstrativa | Sessao obrigatoria |
+| /admin/municipios | Estrutura administrativa geografica | Estatica | Ativa com base demonstrativa | Sessao obrigatoria |
+| /admin/tags | Estrutura administrativa de tags | Estatica | Ativa com base demonstrativa | Sessao obrigatoria |
+| /admin/autores | Estrutura administrativa de autores | Estatica | Ativa com base demonstrativa | Sessao obrigatoria |
+| /admin/publicidade | Estrutura administrativa de slots de publicidade | Estatica | Ativa com base estrutural | Sessao obrigatoria |
+| /admin/configuracoes | Estrutura administrativa de configuracoes | Estatica | Ativa com estado de IA | Sessao obrigatoria |
+
+## Endpoints internos administrativos (Prompt 08)
+
+| Rota | Finalidade | Tipo | Protecao |
+| --- | --- | --- | --- |
+| /api/auth/[...nextauth] | Sessao e autenticacao NextAuth | API | Interna da solucao de auth |
+| /api/admin/ai/suggest | Assistencia editorial com IA para admin | API POST | Sessao + role + rate limit |
+| /api/admin/workflow/preview-transition | Validacao server-side de transicao editorial (demonstrativa) | API POST | Sessao + policy de role |

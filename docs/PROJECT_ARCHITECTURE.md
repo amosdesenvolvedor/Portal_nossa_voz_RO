@@ -224,3 +224,36 @@ Observacao:
 - Respostas tratadas como sugestao editorial, nunca como publicacao.
 - Falhas do provedor retornam erro controlado e nao derrubam o portal publico.
 - Documentacao complementar: `docs/AI_EDITORIAL_ASSISTANCE.md`.
+
+## 22. Fundacao administrativa editorial (Prompt 08)
+
+- Area administrativa separada da publica em `/admin`.
+- Login administrativo real com sessao server-side e `next-auth`.
+- Protecao de rotas administrativas por middleware e validacao no layout protegido.
+- Papeis editoriais preservados:
+	- `ADMIN`
+	- `EDITOR`
+	- `AUTHOR`
+- Policies centralizadas para:
+	- acesso administrativo
+	- permissao de publicacao
+	- transicoes de status
+	- uso de assistencia por IA
+- Shell administrativo proprio para operacao editorial (sidebar, menu mobile, usuario, papel e logout).
+- Dashboard e modulos administrativos estruturais implementados para evolucao do Prompt 09.
+- Editor inicial de noticia por blocos tipados (paragraph, heading, list, quote) sem HTML arbitrario.
+- Integracao de assistencia por IA no painel com acao explicita de aplicar sugestao.
+
+## 23. Estrategia de autenticacao (Prompt 08)
+
+- Provedor de credenciais com validacao server-side.
+- Senha validada por hash forte (`bcryptjs`).
+- Campo `passwordHash` adicionado no model `User`.
+- Bootstrap idempotente do primeiro administrador via ambiente (`npm run admin:bootstrap`).
+- Nenhuma credencial hardcoded no repositorio.
+
+## 24. Estrategia de persistencia nesta etapa
+
+- Dados administrativos de listagem e dashboard ainda utilizam fixtures tipadas centralizadas (`src/data/admin-demo.ts`).
+- Autenticacao e sessao ja sao reais.
+- CRUD persistente completo e workflow persistente ficam para Prompt 09.

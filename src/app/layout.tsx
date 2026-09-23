@@ -1,8 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import type { ReactNode } from "react";
-import { PublicFooter } from "@/components/public/PublicFooter";
-import { PublicHeader } from "@/components/public/PublicHeader";
+import { AppChrome } from "@/components/app/AppChrome";
 import { SITE_CONFIG } from "@/config/site";
 import "./globals.css";
 
@@ -41,17 +40,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="flex min-h-full min-w-0 flex-col bg-canvas text-text">
-        <a
-          href="#main-content"
-          className="sr-only absolute left-3 top-3 z-50 rounded-sm bg-brand-accent px-3 py-2 text-body-sm font-semibold text-text focus:not-sr-only"
-        >
-          Pular para o conteudo
-        </a>
-        <PublicHeader />
-        <div id="main-content" className="min-w-0 flex-1 overflow-x-clip">
-          {children}
-        </div>
-        <PublicFooter />
+        <AppChrome>{children}</AppChrome>
       </body>
     </html>
   );
