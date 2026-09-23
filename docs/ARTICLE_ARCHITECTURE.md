@@ -4,16 +4,18 @@
 
 Definir a pagina individual de noticia publica em `/noticias/[categoria]/[slug]` com foco em leitura, semantica, compartilhamento e evolucao futura para dados reais.
 
-## Fonte de dados temporaria
+## Fonte de dados atual
 
-Arquivo:
-- `src/data/article-demo.ts`
+Camada de servico:
+- `src/lib/services/editorial-service.ts`
+
+Consulta principal:
+- `getPublishedArticleByRoute(categoriaSlug, articleSlug)`
 
 Diretriz:
-- fixture demonstrativa tipada
-- sem dependencia de Prisma nesta etapa
-- slugs validos mapeados explicitamente
-- slugs inexistentes retornam `notFound()` em vez de parecerem noticias reais
+- somente noticias `PUBLISHED` sao acessiveis publicamente
+- slugs inexistentes continuam retornando `notFound()`
+- blocos editoriais persistidos em `News.contentBlocks` (JSON) com fallback seguro para texto simples
 
 ## Estrutura da pagina
 
@@ -97,9 +99,9 @@ Implementacao:
 
 ## Relacionados
 
-- secao demonstrativa com `NewsCard`
-- estrategia temporaria baseada em fixture e lista explicita de slugs relacionados
-- sem algoritmo automatico nesta etapa
+- secao renderizada com `NewsCard`
+- base de dados publica por categoria via `getRelatedPublishedArticles`
+- ordenacao por data de publicacao/atualizacao
 
 ## Metadata
 

@@ -1,12 +1,14 @@
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
-import { ADMIN_DEMO_AUTHORS } from "@/data/admin-demo";
+import { listAuthors } from "@/lib/services/editorial-service";
 
-export default function AdminAuthorsPage() {
+export default async function AdminAuthorsPage() {
+  const authors = await listAuthors();
+
   return (
     <div className="space-y-6">
       <AdminPageHeader
         title="Autores"
-        description="Listagem administrativa de autoria editorial. Mapeamento definitivo com usuários autenticados será consolidado no Prompt 09."
+        description="Listagem administrativa de autoria editorial vinculada a usuários persistidos."
       />
 
       <section className="surface-card overflow-hidden">
@@ -19,10 +21,10 @@ export default function AdminAuthorsPage() {
             </tr>
           </thead>
           <tbody className="divide-y divide-border">
-            {ADMIN_DEMO_AUTHORS.map((author) => (
+            {authors.map((author) => (
               <tr key={author.id}>
                 <td className="px-4 py-3 font-semibold">{author.name}</td>
-                <td className="px-4 py-3">{author.roleLabel}</td>
+                <td className="px-4 py-3">{author.role}</td>
                 <td className="px-4 py-3">{author.email}</td>
               </tr>
             ))}

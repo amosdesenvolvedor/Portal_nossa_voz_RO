@@ -15,10 +15,14 @@ import { Container } from "@/components/ui/Container";
 import { EditorialImagePlaceholder } from "@/components/ui/EditorialImagePlaceholder";
 import { NewsCard } from "@/components/ui/NewsCard";
 import { SectionHeading } from "@/components/ui/SectionHeading";
-import { getCategoryBySlug } from "@/config/site";
-import { getDemoArticleByParams, getRelatedDemoArticles } from "@/data/article-demo";
+import type { EditorialContentBlock } from "@/lib/editorial/article-blocks";
 import { formatEditorialDateTimeLabel, hasEditorialUpdate } from "@/lib/editorial/date";
+import { editorialContentBlocksSchema } from "@/lib/editorial/validation";
 import { buildCategoryHref, buildNewsHref } from "@/lib/editorial/urls";
+import {
+  getPublishedArticleByRoute,
+  getRelatedPublishedArticles,
+} from "@/lib/services/editorial-service";
 
 type NewsArticlePageProps = {
   params: Promise<{
@@ -29,12 +33,12 @@ type NewsArticlePageProps = {
 
 export async function generateMetadata({ params }: NewsArticlePageProps): Promise<Metadata> {
   const resolvedParams = await params;
-  const article = getDemoArticleByParams(resolvedParams.categoria, resolvedParams.slug);
+  const article = await getPublishedArticleByRoute(resolvedParams.categoria, resolvedParams.slug);
 
   if (!article) {
     return {
       title: "Noticia nao encontrada",
-      description: "A notícia solicitada não está disponível nesta fase demonstrativa.",
+      description: "A notícia solicitada não está disponível.",
     };
   }
 
@@ -46,22 +50,30 @@ export async function generateMetadata({ params }: NewsArticlePageProps): Promis
 
 export default async function NewsArticlePage({ params }: NewsArticlePageProps) {
   const resolvedParams = await params;
-  const category = getCategoryBySlug(resolvedParams.categoria);
-
-  if (!category) {
-    notFound();
-  }
-
-  const article = getDemoArticleByParams(resolvedParams.categoria, resolvedParams.slug);
+  const article = await getPublishedArticleByRoute(resolvedParams.categoria, resolvedParams.slug);
 
   if (!article) {
     notFound();
   }
 
-  const relatedArticles = getRelatedDemoArticles(article, 3);
-  const publishedLabel = formatEditorialDateTimeLabel(article.publishedAtISO);
-  const updatedLabel = article.updatedAtISO ? formatEditorialDateTimeLabel(article.updatedAtISO) : "";
-  const locationLabel = [article.municipality, article.region].filter(Boolean).join(" • ") || undefined;
+  const relatedArticles = await getRelatedPublishedArticles(article.id, article.categoryId ?? "", 3);
+  const contentBlocks = editorialContentBlocksSchema.safeParse(article.contentBlocks);
+  const blocks: EditorialContentBlock[] = contentBlocks.success
+    ? contentBlocks.data
+    : [
+        {
+          type: "paragraph",
+          content: [{ type: "text", text: article.content || "Conteúdo indisponível." }],
+        },
+      ];
+
+  const publishedIso = article.publishedAt?.toISOString() ?? article.updatedAt.toISOString();
+  const updatedIso = article.updatedAt.toISOString();
+  const publishedLabel = formatEditorialDateTimeLabel(publishedIso);
+  const updatedLabel = updatedIso ? formatEditorialDateTimeLabel(updatedIso) : "";
+  const categoryLabel = article.category?.name ?? "Notícias";
+  const authorName = article.author?.name ?? article.createdBy.name;
+  const locationLabel = [article.municipality?.name, article.region?.name].filter(Boolean).join(" • ") || undefined;
 
   return (
     <main className="bg-canvas py-6 md:py-8">
@@ -70,31 +82,31 @@ export default async function NewsArticlePage({ params }: NewsArticlePageProps) 
           items={[
             { label: "Home", href: "/" },
             { label: "Notícias", href: "/noticias" },
-            { label: category.label, href: category.href },
-            { label: article.breadcrumbTitle },
+            { label: categoryLabel, href: buildCategoryHref(categoryLabel) },
+            { label: article.title },
           ]}
         />
 
         <article className="space-y-8 md:space-y-10">
           <header className="reading-column space-y-5">
-            <Link href={buildCategoryHref(article.category)} className="inline-flex no-underline">
-              <Badge variant="category">{article.category}</Badge>
+            <Link href={buildCategoryHref(categoryLabel)} className="inline-flex no-underline">
+              <Badge variant="category">{categoryLabel}</Badge>
             </Link>
 
             <div className="space-y-4">
               <h1 className="break-words text-display">{article.title}</h1>
-              <p className="break-words text-body-lg text-text-muted">{article.summary}</p>
+              <p className="break-words text-body-lg text-text-muted">{article.summary ?? ""}</p>
             </div>
 
             <div className="space-y-2 border-t border-border pt-4">
-              <EditorialByline author={article.author} role={article.authorRole} />
+              <EditorialByline author={authorName} role={article.author?.role ?? "Equipe editorial"} />
               <EditorialMeta
                 publishedAtLabel={`Publicado em ${publishedLabel}`}
-                publishedAtISO={article.publishedAtISO}
+                publishedAtISO={publishedIso}
                 municipality={locationLabel}
               />
-              {hasEditorialUpdate(article.publishedAtISO, article.updatedAtISO) ? (
-                <EditorialMeta publishedAtLabel={`Atualizada em ${updatedLabel}`} publishedAtISO={article.updatedAtISO} />
+              {hasEditorialUpdate(publishedIso, updatedIso) ? (
+                <EditorialMeta publishedAtLabel={`Atualizada em ${updatedLabel}`} publishedAtISO={updatedIso} />
               ) : null}
             </div>
           </header>
@@ -102,22 +114,25 @@ export default async function NewsArticlePage({ params }: NewsArticlePageProps) 
           <section className="space-y-6" aria-label="Hero da matéria">
             <figure className="space-y-3">
               <div className="relative aspect-[16/9] overflow-hidden rounded-card border border-border bg-surface-secondary md:aspect-[21/9]">
-                {article.heroImage?.src ? (
+                {article.heroImageUrl ? (
                   <Image
-                    src={article.heroImage.src}
-                    alt={article.heroImage.alt ?? "Imagem principal demonstrativa da notícia"}
+                    src={article.heroImageUrl}
+                    alt={article.heroImageAlt ?? "Imagem principal da notícia"}
                     fill
                     priority
                     sizes="(max-width: 768px) 100vw, 1200px"
                     className="object-cover"
                   />
                 ) : (
-                  <EditorialImagePlaceholder label="Hero editorial demonstrativo" />
+                  <EditorialImagePlaceholder label="Hero editorial" />
                 )}
               </div>
 
               <div className="reading-column">
-                <EditorialImageCaption caption={article.heroImage?.caption} credit={article.heroImage?.credit} />
+                <EditorialImageCaption
+                  caption={article.heroImageCaption ?? undefined}
+                  credit={article.heroImageCredit ?? undefined}
+                />
               </div>
             </figure>
 
@@ -128,7 +143,7 @@ export default async function NewsArticlePage({ params }: NewsArticlePageProps) 
 
           <div className="reading-column space-y-8">
             <ArticleBody
-              blocks={article.blocks}
+              blocks={blocks}
               middleContentAfterBlock={4}
               middleContent={<AdSlot position="ARTICLE_MIDDLE" />}
             />
@@ -137,7 +152,7 @@ export default async function NewsArticlePage({ params }: NewsArticlePageProps) 
               <h2 id="article-tags-title" className="text-h4">
                 Tags
               </h2>
-              <EditorialTagList tags={article.tags} />
+              <EditorialTagList tags={article.tags.map((tag) => ({ label: tag.name }))} />
             </section>
 
             <section className="space-y-3" aria-labelledby="article-share-title">
@@ -159,15 +174,15 @@ export default async function NewsArticlePage({ params }: NewsArticlePageProps) 
             {relatedArticles.map((relatedArticle) => (
               <NewsCard
                 key={relatedArticle.slug}
-                href={buildNewsHref(relatedArticle.category, relatedArticle.slug)}
+                href={buildNewsHref(relatedArticle.category?.name ?? "noticias", relatedArticle.slug)}
                 title={relatedArticle.title}
-                summary={relatedArticle.summary}
-                category={relatedArticle.category}
-                municipality={[relatedArticle.municipality, relatedArticle.region].filter(Boolean).join(" • ") || "Rondônia"}
-                publishedAt={formatEditorialDateTimeLabel(relatedArticle.publishedAtISO)}
-                publishedAtISO={relatedArticle.publishedAtISO}
-                imageSrc={relatedArticle.heroImage?.src}
-                imageAlt={relatedArticle.heroImage?.alt}
+                summary={relatedArticle.summary ?? ""}
+                category={relatedArticle.category?.name ?? "Notícias"}
+                municipality={[relatedArticle.municipality?.name, relatedArticle.region?.name].filter(Boolean).join(" • ") || "Rondônia"}
+                publishedAt={formatEditorialDateTimeLabel(relatedArticle.publishedAt ?? relatedArticle.updatedAt)}
+                publishedAtISO={relatedArticle.publishedAt?.toISOString()}
+                imageSrc={relatedArticle.heroImageUrl ?? undefined}
+                imageAlt={relatedArticle.heroImageAlt ?? undefined}
                 variant="horizontal"
               />
             ))}

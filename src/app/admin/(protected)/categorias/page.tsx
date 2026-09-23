@@ -1,12 +1,14 @@
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
-import { ADMIN_DEMO_CATEGORIES } from "@/data/admin-demo";
+import { listCategories } from "@/lib/services/editorial-service";
 
-export default function AdminCategoriesPage() {
+export default async function AdminCategoriesPage() {
+  const categories = await listCategories();
+
   return (
     <div className="space-y-6">
       <AdminPageHeader
         title="Categorias"
-        description="Área estrutural para governança de categorias editoriais. CRUD persistente será conectado no Prompt 09."
+        description="Governança de categorias editoriais persistidas no banco."
       />
 
       <section className="surface-card overflow-hidden">
@@ -19,7 +21,7 @@ export default function AdminCategoriesPage() {
             </tr>
           </thead>
           <tbody className="divide-y divide-border">
-            {ADMIN_DEMO_CATEGORIES.map((category) => (
+            {categories.map((category) => (
               <tr key={category.id}>
                 <td className="px-4 py-3 font-semibold">{category.name}</td>
                 <td className="px-4 py-3">/{category.slug}</td>

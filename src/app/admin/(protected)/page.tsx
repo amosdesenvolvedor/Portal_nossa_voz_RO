@@ -3,14 +3,19 @@ import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 import { AdminStatusBadge } from "@/components/admin/AdminStatusBadge";
 import { Button } from "@/components/ui/Button";
 import { Divider } from "@/components/ui/Divider";
-import { ADMIN_DEMO_NEWS, getAdminNewsByStatus } from "@/data/admin-demo";
 import { formatEditorialDateTimeLabel } from "@/lib/editorial/date";
+import { getAdminNewsStatusCounts, listAdminNews } from "@/lib/services/editorial-service";
 
-export default function AdminDashboardPage() {
-  const draftCount = getAdminNewsByStatus("DRAFT").length;
-  const reviewCount = getAdminNewsByStatus("IN_REVIEW").length;
-  const publishedCount = getAdminNewsByStatus("PUBLISHED").length;
-  const archivedCount = getAdminNewsByStatus("ARCHIVED").length;
+export default async function AdminDashboardPage() {
+  const [counts, recent] = await Promise.all([
+    getAdminNewsStatusCounts(),
+    listAdminNews({ page: 1, pageSize: 4 }),
+  ]);
+
+  const draftCount = counts.DRAFT;
+  const reviewCount = counts.IN_REVIEW;
+  const publishedCount = counts.PUBLISHED;
+  const archivedCount = counts.ARCHIVED;
 
   return (
     <div className="space-y-6">
@@ -28,32 +33,32 @@ export default function AdminDashboardPage() {
         <article className="surface-card space-y-2 p-4">
           <AdminStatusBadge status="DRAFT" />
           <p className="text-h2">{draftCount}</p>
-          <p className="text-body-sm text-text-muted">Itens em rascunho (demo)</p>
+          <p className="text-body-sm text-text-muted">Itens em rascunho</p>
         </article>
         <article className="surface-card space-y-2 p-4">
           <AdminStatusBadge status="IN_REVIEW" />
           <p className="text-h2">{reviewCount}</p>
-          <p className="text-body-sm text-text-muted">Itens aguardando revisão (demo)</p>
+          <p className="text-body-sm text-text-muted">Itens aguardando revisão</p>
         </article>
         <article className="surface-card space-y-2 p-4">
           <AdminStatusBadge status="PUBLISHED" />
           <p className="text-h2">{publishedCount}</p>
-          <p className="text-body-sm text-text-muted">Itens publicados (demo)</p>
+          <p className="text-body-sm text-text-muted">Itens publicados</p>
         </article>
         <article className="surface-card space-y-2 p-4">
           <AdminStatusBadge status="ARCHIVED" />
           <p className="text-h2">{archivedCount}</p>
-          <p className="text-body-sm text-text-muted">Itens arquivados (demo)</p>
+          <p className="text-body-sm text-text-muted">Itens arquivados</p>
         </article>
       </section>
 
       <section className="surface-card p-4 md:p-5" aria-labelledby="admin-recentes-title">
         <h2 id="admin-recentes-title" className="text-h3">
-          Conteúdos recentes (demonstração)
+          Conteúdos recentes
         </h2>
         <Divider className="my-3" />
         <ul className="space-y-3">
-          {ADMIN_DEMO_NEWS.slice(0, 4).map((item) => (
+          {recent.items.map((item) => (
             <li key={item.id} className="rounded-sm border border-border bg-surface-secondary p-3">
               <div className="flex flex-wrap items-center gap-2">
                 <AdminStatusBadge status={item.status} />

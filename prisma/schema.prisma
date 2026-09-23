@@ -20,11 +20,24 @@ enum NewsStatus {
   ARCHIVED
 }
 
+enum EditorialAuditAction {
+  CREATED
+  UPDATED
+  SUBMITTED_FOR_REVIEW
+  RETURNED_TO_DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
 model User {
   id        String   @id @default(cuid())
   name      String
   email     String   @unique
   passwordHash String?
+  publicSlug String? @unique
+  bio       String?
+  avatarUrl String?
+  isAuthorProfileActive Boolean @default(false)
   role      UserRole @default(AUTHOR)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -33,6 +46,8 @@ model User {
   updatedNews  News[] @relation("UpdatedBy")
   reviewedNews News[] @relation("ReviewedBy")
   publishedNews News[] @relation("PublishedBy")
+  assignedAuthoredNews News[] @relation("AssignedAuthor")
+  editorialAuditEvents EditorialAuditEvent[]
 }
 
 model Region {
@@ -51,6 +66,8 @@ model Municipality {
   name      String
   slug      String   @unique
   stateCode String   @default("RO")
+  isActive  Boolean  @default(true)
+  featured  Boolean  @default(false)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -90,6 +107,11 @@ model News {
   slug           String     @unique
   summary        String?
   content        String
+  contentBlocks  Json?
+  heroImageUrl   String?
+  heroImageAlt   String?
+  heroImageCaption String?
+  heroImageCredit String?
   status         NewsStatus @default(DRAFT)
   isAiAssisted   Boolean    @default(false)
   createdAt      DateTime   @default(now())
@@ -107,6 +129,9 @@ model News {
 
   tags Tag[]
 
+  authorId       String?
+  author         User? @relation("AssignedAuthor", fields: [authorId], references: [id], onDelete: SetNull)
+
   createdById    String
   createdBy      User @relation("CreatedBy", fields: [createdById], references: [id], onDelete: Restrict)
 
@@ -118,4 +143,27 @@ model News {
 
   publishedById  String?
   publishedBy    User? @relation("PublishedBy", fields: [publishedById], references: [id], onDelete: SetNull)
+
+  auditEvents    EditorialAuditEvent[]
+
+  @@index([status, publishedAt])
+  @@index([categoryId, status, publishedAt])
+  @@index([municipalityId, status, publishedAt])
+  @@index([authorId, status, publishedAt])
+}
+
+model EditorialAuditEvent {
+  id         String             @id @default(cuid())
+  articleId  String
+  article    News               @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  actorId    String
+  actor      User               @relation(fields: [actorId], references: [id], onDelete: Restrict)
+  action     EditorialAuditAction
+  fromStatus NewsStatus?
+  toStatus   NewsStatus?
+  notes      String?
+  createdAt  DateTime           @default(now())
+
+  @@index([articleId, createdAt])
+  @@index([actorId, createdAt])
 }

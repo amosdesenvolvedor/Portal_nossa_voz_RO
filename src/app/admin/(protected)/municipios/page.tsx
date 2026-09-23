@@ -1,7 +1,9 @@
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
-import { ADMIN_DEMO_MUNICIPALITIES } from "@/data/admin-demo";
+import { listMunicipalities } from "@/lib/services/editorial-service";
 
-export default function AdminMunicipalitiesPage() {
+export default async function AdminMunicipalitiesPage() {
+  const municipalities = await listMunicipalities();
+
   return (
     <div className="space-y-6">
       <AdminPageHeader
@@ -21,11 +23,11 @@ export default function AdminMunicipalitiesPage() {
             </tr>
           </thead>
           <tbody className="divide-y divide-border">
-            {ADMIN_DEMO_MUNICIPALITIES.map((municipality) => (
+            {municipalities.map((municipality) => (
               <tr key={municipality.id}>
                 <td className="px-4 py-3 font-semibold">{municipality.name}</td>
                 <td className="px-4 py-3">/{municipality.slug}</td>
-                <td className="px-4 py-3">{municipality.region}</td>
+                <td className="px-4 py-3">{municipality.region?.name ?? "-"}</td>
                 <td className="px-4 py-3">{municipality.isActive ? "Sim" : "Não"}</td>
                 <td className="px-4 py-3">{municipality.featured ? "Sim" : "Não"}</td>
               </tr>

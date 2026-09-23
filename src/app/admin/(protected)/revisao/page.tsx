@@ -1,10 +1,10 @@
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 import { AdminStatusBadge } from "@/components/admin/AdminStatusBadge";
-import { ADMIN_DEMO_NEWS } from "@/data/admin-demo";
 import { formatEditorialDateTimeLabel } from "@/lib/editorial/date";
+import { listReviewQueue } from "@/lib/services/editorial-service";
 
-export default function AdminReviewQueuePage() {
-  const queue = ADMIN_DEMO_NEWS.filter((item) => item.status === "IN_REVIEW");
+export default async function AdminReviewQueuePage() {
+  const queue = await listReviewQueue();
 
   return (
     <div className="space-y-6">
@@ -15,7 +15,7 @@ export default function AdminReviewQueuePage() {
 
       <section className="surface-card p-4 md:p-5">
         {queue.length === 0 ? (
-          <p className="text-body-sm text-text-muted">Nenhum item em revisão na base demonstrativa atual.</p>
+          <p className="text-body-sm text-text-muted">Nenhum item em revisão no momento.</p>
         ) : (
           <ul className="space-y-3">
             {queue.map((item) => (

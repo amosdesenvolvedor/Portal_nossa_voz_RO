@@ -252,8 +252,14 @@ Observacao:
 - Bootstrap idempotente do primeiro administrador via ambiente (`npm run admin:bootstrap`).
 - Nenhuma credencial hardcoded no repositorio.
 
-## 24. Estrategia de persistencia nesta etapa
+## 24. Estrategia de persistencia editorial (Prompt 09)
 
-- Dados administrativos de listagem e dashboard ainda utilizam fixtures tipadas centralizadas (`src/data/admin-demo.ts`).
-- Autenticacao e sessao ja sao reais.
-- CRUD persistente completo e workflow persistente ficam para Prompt 09.
+- PostgreSQL com Prisma tornou-se a fonte de verdade para conteudo editorial.
+- CRUD persistente implementado para noticias, categorias, municipios, tags e perfis de autor no modulo administrativo.
+- Workflow persistente com transicoes controladas por papel (`ADMIN`, `EDITOR`, `AUTHOR`) e policies server-side.
+- Auditoria editorial append-only em `EditorialAuditEvent` para criacao, atualizacao e mudancas de status.
+- Paginas publicas principais conectadas ao banco com filtro de visibilidade por `PUBLISHED`.
+- Estruturas fixture permanecem apenas como fallback quando a base ainda nao possui conteudo publicado.
+
+Documentacao complementar:
+- `docs/DATA_PERSISTENCE.md`

@@ -9,11 +9,100 @@ import { Container } from "@/components/ui/Container";
 import { Divider } from "@/components/ui/Divider";
 import { NewsCard } from "@/components/ui/NewsCard";
 import { SectionHeading } from "@/components/ui/SectionHeading";
+import type { CategoryBlock, DemoStory, HomeDemoData, LatestItem } from "@/data/home-demo";
 import { HOME_DEMO_DATA } from "@/data/home-demo";
+import { formatEditorialDateTimeLabel, formatEditorialTimeLabel } from "@/lib/editorial/date";
 import { buildNewsHref } from "@/lib/editorial/urls";
+import { listPublishedNews } from "@/lib/services/editorial-service";
 
-export default function Home() {
-  const lead = HOME_DEMO_DATA.leadStory;
+function toStory(item: Awaited<ReturnType<typeof listPublishedNews>>[number]): DemoStory {
+  const publishedAt = item.publishedAt ?? item.updatedAt;
+  return {
+    slug: item.slug,
+    category: item.category?.name ?? "Notícias",
+    title: item.title,
+    summary: item.summary ?? "Sem resumo",
+    municipality: item.municipality?.name ?? "Rondônia",
+    publishedAt: formatEditorialDateTimeLabel(publishedAt),
+    publishedAtISO: publishedAt.toISOString(),
+    author: item.author?.name ?? item.createdBy.name,
+    imageSrc: item.heroImageUrl ?? undefined,
+    imageAlt: item.heroImageAlt ?? undefined,
+  };
+}
+
+function toLatestItem(item: Awaited<ReturnType<typeof listPublishedNews>>[number]): LatestItem {
+  const publishedAt = item.publishedAt ?? item.updatedAt;
+  return {
+    timeLabel: formatEditorialTimeLabel(publishedAt),
+    publishedAtISO: publishedAt.toISOString(),
+    category: item.category?.name ?? "Notícias",
+    title: item.title,
+    municipality: item.municipality?.name ?? undefined,
+    href: buildNewsHref(item.category?.name ?? "noticias", item.slug),
+  };
+}
+
+async function getHomeData(): Promise<HomeDemoData> {
+  const published = await listPublishedNews({ limit: 40 });
+
+  if (published.length === 0) {
+    return HOME_DEMO_DATA;
+  }
+
+  const stories = published.map(toStory);
+  const leadStory = stories[0] ?? HOME_DEMO_DATA.leadStory;
+  const secondaryHighlights = stories.slice(1, 4);
+  const latestNews = published.slice(0, 12).map(toLatestItem);
+
+  const categoriesMap = new Map<string, Awaited<ReturnType<typeof listPublishedNews>>[number][]>();
+  for (const item of published) {
+    const key = item.category?.slug ?? "noticias";
+    const existing = categoriesMap.get(key) ?? [];
+    existing.push(item);
+    categoriesMap.set(key, existing);
+  }
+
+  const categoryBlocks: CategoryBlock[] = Array.from(categoriesMap.entries())
+    .slice(0, 3)
+    .map(([categorySlug, items]) => ({
+      id: categorySlug,
+      title: items[0]?.category?.name ?? "Notícias",
+      description: "Publicações recentes desta editoria.",
+      href: `/noticias/${categorySlug}`,
+      stories: items.slice(0, 2).map(toStory),
+    }));
+
+  const municipalityMap = new Map<string, { name: string; href: string }>();
+  for (const item of published) {
+    if (!item.municipality?.slug || !item.municipality.name) {
+      continue;
+    }
+
+    municipalityMap.set(item.municipality.slug, {
+      name: item.municipality.name,
+      href: `/municipios/${item.municipality.slug}`,
+    });
+  }
+
+  const municipalityLinks = Array.from(municipalityMap.values()).slice(0, 8);
+
+  return {
+    leadStory,
+    secondaryHighlights,
+    latestNews,
+    regionalNews: stories.slice(4, 7),
+    categoryBlocks,
+    municipalityLinks: municipalityLinks.length > 0 ? municipalityLinks : HOME_DEMO_DATA.municipalityLinks,
+    jobsAndClassifiedsLinks: HOME_DEMO_DATA.jobsAndClassifiedsLinks,
+    sidebarStories: stories.slice(7, 9),
+    adSlots: HOME_DEMO_DATA.adSlots,
+  };
+}
+
+export default async function Home() {
+  const homeData = await getHomeData();
+  const lead = homeData.leadStory;
 
   return (
     <main className="bg-canvas py-4 md:py-6">
@@ -26,7 +115,7 @@ export default function Home() {
           <FeaturedStory story={lead} />
 
           <div className="min-w-0 space-y-4">
-            {HOME_DEMO_DATA.secondaryHighlights.map((story) => (
+            {homeData.secondaryHighlights.map((story) => (
               <article key={story.slug} className="surface-card p-4 md:p-5">
                 <p className="text-caption font-semibold uppercase tracking-[0.08em] text-brand-secondary">{story.category}</p>
                 <h2 className="mt-2 text-h4">
@@ -53,7 +142,7 @@ export default function Home() {
                 title="Últimas notícias"
                 subtitle="Fluxo cronológico demonstrativo para futuras atualizações editoriais em tempo de publicação."
               />
-              <LatestNewsList items={HOME_DEMO_DATA.latestNews} />
+              <LatestNewsList items={homeData.latestNews} />
             </section>
 
             <section className="space-y-5">
@@ -68,7 +157,7 @@ export default function Home() {
               />
 
               <div className="grid gap-4 md:grid-cols-2">
-                {HOME_DEMO_DATA.regionalNews.map((story, index) => (
+                {homeData.regionalNews.map((story, index) => (
                   <NewsCard
                     key={story.slug}
                     className={index === 0 ? "md:col-span-2" : undefined}
@@ -88,7 +177,7 @@ export default function Home() {
 
             <AdSlot position="HOME_MIDDLE" />
 
-            <MunicipalityDirectory items={HOME_DEMO_DATA.municipalityLinks} />
+            <MunicipalityDirectory items={homeData.municipalityLinks} />
 
             <section className="space-y-5" aria-labelledby="editorias-home-title">
               <header className="space-y-2">
@@ -101,14 +190,14 @@ export default function Home() {
               </header>
 
               <div className="space-y-8">
-                {HOME_DEMO_DATA.categoryBlocks.map((block) => (
+                {homeData.categoryBlocks.map((block) => (
                   <CategorySection key={block.id} block={block} />
                 ))}
               </div>
             </section>
 
             <section className="grid gap-4 md:grid-cols-2" aria-label="Entradas de servicos editoriais">
-              {HOME_DEMO_DATA.jobsAndClassifiedsLinks.map((entry) => (
+              {homeData.jobsAndClassifiedsLinks.map((entry) => (
                 <article key={entry.href} className="surface-card p-5">
                   <h2 className="text-h3">
                     <Link href={entry.href} className="text-text no-underline hover:text-brand-secondary">
@@ -137,7 +226,7 @@ export default function Home() {
               <h2 className="text-h4">Acompanhe também</h2>
               <Divider className="my-3" />
               <ul className="space-y-3">
-                {HOME_DEMO_DATA.sidebarStories.map((story) => (
+                {homeData.sidebarStories.map((story) => (
                   <li key={story.slug}>
                     <article className="space-y-1.5">
                       <p className="text-caption font-semibold uppercase tracking-[0.08em] text-brand-secondary">{story.category}</p>

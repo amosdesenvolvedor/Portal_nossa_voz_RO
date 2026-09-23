@@ -65,8 +65,8 @@ Transicoes centralizadas em policy:
 - `ARCHIVED -> DRAFT`
 
 Observacao:
-- a validacao de permissao de transicao ja ocorre server-side em endpoint administrativo demonstrativo
-- persistencia definitiva do workflow sera conectada no Prompt 09
+- a validacao de permissao de transicao ocorre server-side
+- as transicoes agora persistem no banco e geram trilha de auditoria
 
 ## Roles e autorizacao
 
@@ -152,32 +152,32 @@ Foi adicionada limitacao em memoria por usuario autenticado no endpoint administ
 Observacao:
 - controle distribuido/robusto sera evoluido em infraestrutura futura
 
-## Fixtures temporarias
+## Persistencia administrativa atual (Prompt 09)
 
-Fonte temporaria centralizada:
-- `src/data/admin-demo.ts`
+Camada de servico:
+- `src/lib/services/editorial-service.ts`
 
-Uso:
-- dashboard
-- listagens administrativas
-- filas de revisao
-- paginas estruturais de categorias/municipios/tags/autores
+Validacao de payload:
+- `src/lib/editorial/validation.ts`
 
-Nao representa persistencia real.
+Normalizacao de erros HTTP:
+- `src/lib/utils/http-errors.ts`
 
-## Integracao com Prompt 09
+Endpoints administrativos persistentes:
+- `GET/POST /api/admin/news`
+- `GET/PATCH /api/admin/news/[id]`
+- `POST /api/admin/news/[id]/workflow`
+- `GET/POST /api/admin/categories`
+- `PATCH /api/admin/categories/[id]`
+- `GET/POST /api/admin/municipalities`
+- `PATCH /api/admin/municipalities/[id]`
+- `GET/POST /api/admin/tags`
+- `PATCH /api/admin/tags/[id]`
+- `GET/POST /api/admin/authors`
+- `PATCH /api/admin/authors/[id]`
 
-Esta etapa deixa preparado:
-- auth e sessao administrativas
-- policies de papel e workflow
-- shell e navegacao do admin
-- pontos de integracao para CRUD real
-- editor estruturado para persistencia em banco
-- assistencia de IA integrada ao painel
+Auditoria:
+- eventos persistidos em `EditorialAuditEvent` para criacao, atualizacao e mudancas de status
 
-Prompt 09 conectara:
-- repositories/services
-- queries/mutations
-- CRUD persistente
-- workflow persistente
-- auditoria persistente
+Regra preservada:
+- IA segue apenas como assistencia; publicacao continua sendo acao humana autorizada

@@ -2,9 +2,9 @@ import Link from "next/link";
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 import { AdminStatusBadge } from "@/components/admin/AdminStatusBadge";
 import { Button } from "@/components/ui/Button";
-import { ADMIN_DEMO_AUTHORS, ADMIN_DEMO_MUNICIPALITIES, ADMIN_DEMO_NEWS } from "@/data/admin-demo";
 import type { NewsStatus } from "@/lib/domain/editorial";
 import { formatEditorialDateTimeLabel } from "@/lib/editorial/date";
+import { listAdminNews, listAdminReferenceData } from "@/lib/services/editorial-service";
 
 type AdminNewsPageProps = {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
@@ -23,17 +23,19 @@ export default async function AdminNewsPage({ searchParams }: AdminNewsPageProps
   const selectedStatus = typeof params.status === "string" ? params.status : "all";
   const selectedMunicipality = typeof params.municipio === "string" ? params.municipio : "all";
   const selectedAuthor = typeof params.autor === "string" ? params.autor : "all";
+  const query = typeof params.q === "string" ? params.q : "";
 
-  const filteredNews = ADMIN_DEMO_NEWS.filter((item) => {
-    const byStatus = selectedStatus === "all" || item.status === selectedStatus;
-    const byMunicipality = selectedMunicipality === "all" || item.municipality === selectedMunicipality;
-    const byAuthor = selectedAuthor === "all" || item.author === selectedAuthor;
-
-    return byStatus && byMunicipality && byAuthor;
-  });
-
-  const uniqueMunicipalities = Array.from(new Set(ADMIN_DEMO_MUNICIPALITIES.map((item) => item.name)));
-  const uniqueAuthors = Array.from(new Set(ADMIN_DEMO_AUTHORS.map((item) => item.name)));
+  const [referenceData, filteredNews] = await Promise.all([
+    listAdminReferenceData(),
+    listAdminNews({
+      page: 1,
+      pageSize: 50,
+      status: selectedStatus === "all" ? undefined : (selectedStatus as NewsStatus),
+      municipalitySlug: selectedMunicipality === "all" ? undefined : selectedMunicipality,
+      authorId: selectedAuthor === "all" ? undefined : selectedAuthor,
+      q: query || undefined,
+    }),
+  ]);
 
   return (
     <div className="space-y-6">
@@ -68,9 +70,9 @@ export default async function AdminNewsPage({ searchParams }: AdminNewsPageProps
               className="h-11 w-full rounded-md border border-border bg-surface px-3"
             >
               <option value="all">Todos</option>
-              {uniqueMunicipalities.map((name) => (
-                <option key={name} value={name}>
-                  {name}
+              {referenceData.municipalities.map((item) => (
+                <option key={item.id} value={item.slug}>
+                  {item.name}
                 </option>
               ))}
             </select>
@@ -80,9 +82,9 @@ export default async function AdminNewsPage({ searchParams }: AdminNewsPageProps
             Autor
             <select name="autor" defaultValue={selectedAuthor} className="h-11 w-full rounded-md border border-border bg-surface px-3">
               <option value="all">Todos</option>
-              {uniqueAuthors.map((name) => (
-                <option key={name} value={name}>
-                  {name}
+              {referenceData.authors.map((item) => (
+                <option key={item.id} value={item.id}>
+                  {item.name}
                 </option>
               ))}
             </select>
@@ -91,10 +93,10 @@ export default async function AdminNewsPage({ searchParams }: AdminNewsPageProps
           <div className="space-y-1.5 text-body-sm font-semibold">
             <span>Busca por título</span>
             <input
-              disabled
-              aria-disabled
-              placeholder="Será conectada no Prompt 09"
-              className="h-11 w-full rounded-md border border-border bg-surface-secondary px-3 text-text-muted"
+              name="q"
+              defaultValue={query}
+              placeholder="Digite parte do título"
+              className="h-11 w-full rounded-md border border-border bg-surface px-3"
             />
           </div>
 
@@ -119,7 +121,7 @@ export default async function AdminNewsPage({ searchParams }: AdminNewsPageProps
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
-              {filteredNews.map((item) => (
+              {filteredNews.items.map((item) => (
                 <tr key={item.id}>
                   <td className="px-4 py-3">
                     <p className="font-semibold">{item.title}</p>
@@ -144,7 +146,7 @@ export default async function AdminNewsPage({ searchParams }: AdminNewsPageProps
         </div>
 
         <ul className="grid gap-3 p-3 lg:hidden">
-          {filteredNews.map((item) => (
+              {filteredNews.items.map((item) => (
             <li key={item.id} className="rounded-md border border-border bg-surface p-3">
               <div className="flex flex-wrap items-center gap-2">
                 <AdminStatusBadge status={item.status} />

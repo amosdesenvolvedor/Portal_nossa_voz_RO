@@ -1,8 +1,8 @@
 import { notFound } from "next/navigation";
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 import { AdminStatusBadge } from "@/components/admin/AdminStatusBadge";
-import { ADMIN_DEMO_NEWS } from "@/data/admin-demo";
 import { formatEditorialDateTimeLabel } from "@/lib/editorial/date";
+import { getAdminNewsById } from "@/lib/services/editorial-service";
 
 type AdminNewsDetailsPageProps = {
   params: Promise<{
@@ -12,17 +12,21 @@ type AdminNewsDetailsPageProps = {
 
 export default async function AdminNewsDetailsPage({ params }: AdminNewsDetailsPageProps) {
   const resolvedParams = await params;
-  const entry = ADMIN_DEMO_NEWS.find((item) => item.id === resolvedParams.id);
+  const entry = await getAdminNewsById(resolvedParams.id);
 
   if (!entry) {
     notFound();
   }
 
+  const authorName = entry.author?.name ?? entry.createdBy.name;
+  const categoryName = entry.category?.name ?? "Sem categoria";
+  const municipalityName = entry.municipality?.name ?? "Sem município";
+
   return (
     <div className="space-y-6">
       <AdminPageHeader
         title="Detalhes da notícia"
-        description="Página estrutural para futura edição persistente por ID no Prompt 09."
+        description="Detalhe persistente da notícia por identificador."
       />
 
       <article className="surface-card space-y-3 p-5">
@@ -35,19 +39,19 @@ export default async function AdminNewsDetailsPage({ params }: AdminNewsDetailsP
           </div>
           <div>
             <dt className="font-semibold">Categoria</dt>
-            <dd>{entry.category}</dd>
+            <dd>{categoryName}</dd>
           </div>
           <div>
             <dt className="font-semibold">Autor</dt>
-            <dd>{entry.author}</dd>
+            <dd>{authorName}</dd>
           </div>
           <div>
             <dt className="font-semibold">Município</dt>
-            <dd>{entry.municipality}</dd>
+            <dd>{municipalityName}</dd>
           </div>
           <div>
             <dt className="font-semibold">Atualização</dt>
-            <dd>{formatEditorialDateTimeLabel(entry.updatedAtISO)}</dd>
+            <dd>{formatEditorialDateTimeLabel(entry.updatedAt)}</dd>
           </div>
         </dl>
       </article>

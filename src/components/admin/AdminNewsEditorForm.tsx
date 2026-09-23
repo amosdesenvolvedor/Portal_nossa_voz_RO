@@ -122,6 +122,7 @@ export function AdminNewsEditorForm({
   const [imageCredit, setImageCredit] = useState("");
   const [tagInput, setTagInput] = useState("jornalismo regional, nossa voz ro");
   const [status, setStatus] = useState<NewsStatus>("DRAFT");
+  const [draftId, setDraftId] = useState<string | null>(null);
   const [blocks, setBlocks] = useState<EditorialContentBlock[]>([
     fromTextToParagraph("Escreva o primeiro parágrafo da matéria."),
   ]);
@@ -132,6 +133,7 @@ export function AdminNewsEditorForm({
   const [aiSuggestion, setAiSuggestion] = useState("");
   const [aiFeedback, setAiFeedback] = useState<Notice | null>(null);
   const [aiPending, setAiPending] = useState(false);
+  const [saving, setSaving] = useState(false);
   const [actionNotice, setActionNotice] = useState<Notice | null>(null);
 
   const bodyText = useMemo(() => toPlainTextFromBlocks(blocks), [blocks]);
@@ -279,54 +281,149 @@ export function AdminNewsEditorForm({
     setActionNotice({ tone: "info", message: "Sugestão aplicada ao corpo da matéria." });
   }
 
-  function saveDraft() {
-    setActionNotice({ tone: "info", message: "Salvar rascunho preparado. Persistência real será conectada no Prompt 09." });
+  function parseTags(tagValue: string): string[] {
+    return Array.from(
+      new Set(
+        tagValue
+          .split(",")
+          .map((item) => item.trim())
+          .filter(Boolean),
+      ),
+    );
+  }
+
+  function buildPayload() {
+    return {
+      title: title.trim(),
+      slug: slug.trim(),
+      summary: summary.trim(),
+      categorySlug: category,
+      municipalitySlug: municipality,
+      authorId: author || undefined,
+      heroImageUrl: "",
+      heroImageAlt: "",
+      heroImageCaption: imageCaption.trim(),
+      heroImageCredit: imageCredit.trim(),
+      tags: parseTags(tagInput),
+      blocks,
+    };
+  }
+
+  async function saveDraft() {
+    setSaving(true);
+
+    const endpoint = draftId ? `/api/admin/news/${draftId}` : "/api/admin/news";
+    const method = draftId ? "PATCH" : "POST";
+
+    const response = await fetch(endpoint, {
+      method,
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(buildPayload()),
+    });
+
+    const data = (await response.json().catch(() => null)) as
+      | { ok: true; data?: { id?: string; status?: NewsStatus } }
+      | { ok: false; message?: string }
+      | null;
+
+    setSaving(false);
+
+    if (!response.ok || !data?.ok) {
+      setActionNotice({
+        tone: "error",
+        message: data && "message" in data && data.message ? data.message : "Não foi possível salvar o rascunho.",
+      });
+      return null;
+    }
+
+    const persistedId = data.data?.id ?? draftId;
+
+    if (data.data?.id) {
+      setDraftId(data.data.id);
+    }
+
+    if (data.data?.status) {
+      setStatus(data.data.status);
+    }
+
+    setActionNotice({
+      tone: "info",
+      message: draftId ? "Rascunho atualizado com sucesso." : "Rascunho criado e persistido com sucesso.",
+    });
+
+    return persistedId ?? null;
   }
 
   async function sendToReview() {
-    const response = await fetch("/api/admin/workflow/preview-transition", {
+    let newsId = draftId;
+    if (!newsId) {
+      newsId = await saveDraft();
+      if (!newsId) {
+        return;
+      }
+    }
+
+    if (!newsId) {
+      setActionNotice({ tone: "error", message: "Falha ao identificar o rascunho para transição." });
+      return;
+    }
+
+    const response = await fetch(`/api/admin/news/${newsId}/workflow`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ from: status, to: "IN_REVIEW" }),
+      body: JSON.stringify({ to: "IN_REVIEW" }),
     });
 
-    const data = (await response.json().catch(() => null)) as { ok: boolean; message?: string } | null;
+    const data = (await response.json().catch(() => null)) as
+      | { ok: true; data?: { status?: NewsStatus } }
+      | { ok: false; message?: string }
+      | null;
 
     if (!response.ok || !data?.ok) {
       setActionNotice({
         tone: "warning",
-        message: data?.message || "Seu papel não pode enviar este status para revisão.",
+        message: data && "message" in data && data.message ? data.message : "Seu papel não pode enviar este status para revisão.",
       });
       return;
     }
 
-    setStatus("IN_REVIEW");
+    setStatus(data.data?.status ?? "IN_REVIEW");
     setActionNotice({
       tone: "info",
-      message: "Transição autorizada no servidor. Persistência real será conectada no Prompt 09.",
+      message: "Conteúdo enviado para revisão com persistência no banco.",
     });
   }
 
   async function publishContent() {
-    const response = await fetch("/api/admin/workflow/preview-transition", {
+    if (!draftId) {
+      setActionNotice({ tone: "warning", message: "Salve o rascunho antes de publicar." });
+      return;
+    }
+
+    const response = await fetch(`/api/admin/news/${draftId}/workflow`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ from: status, to: "PUBLISHED" }),
+      body: JSON.stringify({ to: "PUBLISHED" }),
     });
 
-    const data = (await response.json().catch(() => null)) as { ok: boolean; message?: string } | null;
+    const data = (await response.json().catch(() => null)) as
+      | { ok: true; data?: { status?: NewsStatus } }
+      | { ok: false; message?: string }
+      | null;
 
     if (!response.ok || !data?.ok) {
       setActionNotice({
         tone: "warning",
-        message: data?.message || "Seu papel não possui autorização de publicação.",
+        message: data && "message" in data && data.message ? data.message : "Seu papel não possui autorização de publicação.",
       });
       return;
     }
 
+    setStatus(data.data?.status ?? "PUBLISHED");
+
     setActionNotice({
-      tone: "warning",
-      message: "Publicação autorizada em policy server-side, mas não persistida nesta etapa. Prompt 09 fará gravação real.",
+      tone: "info",
+      message: "Matéria publicada com sucesso.",
     });
   }
 
@@ -558,11 +655,13 @@ export function AdminNewsEditorForm({
         <article className="surface-card space-y-3 p-4 md:p-5">
           <h2 className="text-h3">Ações editoriais</h2>
           <div className="flex flex-wrap gap-2">
-            <Button onClick={saveDraft}>Salvar rascunho</Button>
-            <Button variant="outline" onClick={sendToReview}>
+            <Button onClick={saveDraft} disabled={saving}>
+              {saving ? "Salvando..." : "Salvar rascunho"}
+            </Button>
+            <Button variant="outline" onClick={sendToReview} disabled={saving}>
               Enviar para revisão
             </Button>
-            <Button variant="secondary" onClick={publishContent} disabled={!publishAllowed}>
+            <Button variant="secondary" onClick={publishContent} disabled={!publishAllowed || saving}>
               Publicar
             </Button>
             <Button variant="ghost" disabled>

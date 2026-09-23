@@ -10,7 +10,8 @@
     "typecheck": "tsc --noEmit",
     "prisma:generate": "prisma generate",
     "prisma:studio": "prisma studio",
-    "admin:bootstrap": "node scripts/bootstrap-admin.mjs"
+    "admin:bootstrap": "node scripts/bootstrap-admin.mjs",
+    "seed:editorial": "node scripts/seed-editorial-base.mjs"
   },
   "dependencies": {
     "@prisma/client": "^5.22.0",
