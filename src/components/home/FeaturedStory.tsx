@@ -12,7 +12,7 @@ type FeaturedStoryProps = {
 
 export function FeaturedStory({ story }: FeaturedStoryProps) {
   return (
-    <article className="surface-card overflow-hidden">
+    <article className="surface-card min-w-0 overflow-hidden">
       <div className="relative aspect-[16/9] w-full bg-surface-secondary">
         {story.imageSrc ? (
           <Image
@@ -28,10 +28,10 @@ export function FeaturedStory({ story }: FeaturedStoryProps) {
         )}
       </div>
 
-      <div className="space-y-4 p-5 md:p-7">
+      <div className="min-w-0 space-y-4 p-5 md:p-7">
         <header className="space-y-3">
           <Badge variant="category">{story.category}</Badge>
-          <h2 className="text-h1">
+          <h2 className="text-h1 break-words">
             <Link
               href={buildNewsHref(story.category, story.slug)}
               className="text-text no-underline hover:text-brand-secondary"
@@ -39,7 +39,7 @@ export function FeaturedStory({ story }: FeaturedStoryProps) {
               {story.title}
             </Link>
           </h2>
-          <p className="text-body-lg text-text-muted">{story.summary}</p>
+          <p className="break-words text-body-lg text-text-muted">{story.summary}</p>
         </header>
 
         <footer className="flex flex-wrap items-center gap-x-3 gap-y-1 text-body-sm text-text-muted">

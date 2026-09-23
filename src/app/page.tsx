@@ -25,7 +25,7 @@ export default function Home() {
         <section className="grid gap-5 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
           <FeaturedStory story={lead} />
 
-          <div className="space-y-4">
+          <div className="min-w-0 space-y-4">
             {HOME_DEMO_DATA.secondaryHighlights.map((story) => (
               <article key={story.slug} className="surface-card p-4 md:p-5">
                 <p className="text-caption font-semibold uppercase tracking-[0.08em] text-brand-secondary">{story.category}</p>
@@ -47,7 +47,7 @@ export default function Home() {
         </section>
 
         <div className="grid gap-8 xl:grid-cols-[minmax(0,2fr)_320px]">
-          <div className="space-y-10">
+          <div className="min-w-0 space-y-10">
             <section className="space-y-5">
               <SectionHeading
                 title="Últimas notícias"
@@ -130,7 +130,7 @@ export default function Home() {
             </div>
           </div>
 
-          <aside className="space-y-6 xl:sticky xl:top-6 xl:self-start" aria-label="Barra lateral">
+          <aside className="min-w-0 space-y-6 xl:sticky xl:top-6 xl:self-start" aria-label="Barra lateral">
             <AdSlot position="SIDEBAR" />
 
             <section className="surface-card p-5">

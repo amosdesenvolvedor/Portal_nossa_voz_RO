@@ -42,7 +42,7 @@ export function NewsCard({
   return (
     <article
       className={cn(
-        "surface-card overflow-hidden",
+        "surface-card min-w-0 overflow-hidden",
         isHorizontal ? "md:grid md:grid-cols-[220px_minmax(0,1fr)]" : undefined,
         className,
       )}
@@ -57,19 +57,19 @@ export function NewsCard({
         </div>
       ) : null}
 
-      <div className={cn("space-y-4 p-4 md:p-5", isCompact ? "space-y-3" : undefined)}>
+      <div className={cn("min-w-0 space-y-4 p-4 md:p-5", isCompact ? "space-y-3" : undefined)}>
         <div className="flex flex-wrap items-center gap-2">
           <Badge variant="category">{category}</Badge>
           <Badge variant="municipality">{municipality}</Badge>
         </div>
 
-        <h3 className="text-h3">
+        <h3 className="text-h3 break-words">
           <Link href={href} className="text-text no-underline hover:text-brand-secondary focus-visible:rounded-sm">
             {title}
           </Link>
         </h3>
 
-        {!isCompact ? <p className="text-body-sm text-text-muted">{summary}</p> : null}
+        {!isCompact ? <p className="break-words text-body-sm text-text-muted">{summary}</p> : null}
 
         <EditorialMeta publishedAtLabel={publishedAt} publishedAtISO={publishedAtISO} author={author} />
       </div>

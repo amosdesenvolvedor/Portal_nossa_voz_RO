@@ -40,7 +40,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
       lang="pt-BR"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col bg-canvas text-text">
+      <body className="flex min-h-full min-w-0 flex-col bg-canvas text-text">
         <a
           href="#main-content"
           className="sr-only absolute left-3 top-3 z-50 rounded-sm bg-brand-accent px-3 py-2 text-body-sm font-semibold text-text focus:not-sr-only"
@@ -48,7 +48,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
           Pular para o conteudo
         </a>
         <PublicHeader />
-        <div id="main-content" className="flex-1">
+        <div id="main-content" className="min-w-0 flex-1 overflow-x-clip">
           {children}
         </div>
         <PublicFooter />

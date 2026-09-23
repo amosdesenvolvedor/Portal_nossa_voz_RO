@@ -16,7 +16,7 @@ export function Container<T extends ElementType = "div">({
   const Component = as ?? "div";
 
   return (
-    <Component className={cn("container-site", className)} {...props}>
+    <Component className={cn("container-site min-w-0 max-w-full", className)} {...props}>
       {children}
     </Component>
   );

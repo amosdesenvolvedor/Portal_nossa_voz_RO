@@ -17,8 +17,8 @@ export function BrandLogo({ priority = false, className, href = "/" }: BrandLogo
       width={SITE_CONFIG.logo.width}
       height={SITE_CONFIG.logo.height}
       priority={priority}
-      className={cn("h-auto w-full max-w-[180px] md:max-w-[220px]", className)}
-      sizes="(max-width: 768px) 180px, 220px"
+      className={cn("h-auto w-full max-w-[148px] sm:max-w-[180px] md:max-w-[220px]", className)}
+      sizes="(max-width: 640px) 148px, (max-width: 768px) 180px, 220px"
     />
   );
 

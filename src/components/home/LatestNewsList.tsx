@@ -10,7 +10,7 @@ export function LatestNewsList({ items }: LatestNewsListProps) {
     <ul className="divide-y divide-border border-y border-border">
       {items.map((item) => (
         <li key={`${item.timeLabel}-${item.href}`}>
-          <article className="grid grid-cols-[auto_1fr] gap-x-4 py-3 md:py-4">
+          <article className="grid gap-y-1 py-3 sm:grid-cols-[auto_minmax(0,1fr)] sm:gap-x-4 md:py-4">
             <time dateTime={item.publishedAtISO} className="pt-0.5 text-caption font-semibold text-brand-secondary">
               {item.timeLabel}
             </time>

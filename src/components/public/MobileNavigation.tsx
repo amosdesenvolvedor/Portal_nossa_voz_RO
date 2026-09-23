@@ -41,7 +41,7 @@ export function MobileNavigation() {
   }
 
   return (
-    <div className="lg:hidden">
+    <div className="relative lg:hidden">
       <Button
         variant="outline"
         size="icon"
@@ -54,7 +54,10 @@ export function MobileNavigation() {
       </Button>
 
       {isOpen ? (
-        <div id="mobile-navigation-panel" className="mt-3 surface-card p-4 shadow-card">
+        <div
+          id="mobile-navigation-panel"
+          className="absolute right-0 z-30 mt-3 w-[min(22rem,calc(100vw-2rem))] surface-card p-4 shadow-card"
+        >
           <div className="space-y-5">
             <section>
               <h2 className="text-caption font-semibold uppercase tracking-[0.08em] text-text-muted">Principal</h2>

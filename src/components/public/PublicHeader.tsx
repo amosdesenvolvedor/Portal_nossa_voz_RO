@@ -8,7 +8,7 @@ export function PublicHeader() {
   return (
     <header className="border-b border-border bg-surface">
       <Container>
-        <div className="flex items-center justify-between gap-4 py-3 md:py-4">
+        <div className="flex flex-wrap items-center justify-between gap-3 py-3 md:gap-4 md:py-4">
           <BrandLogo priority className="md:max-w-[280px]" />
 
           <nav aria-label="Navegacao institucional" className="hidden lg:block">

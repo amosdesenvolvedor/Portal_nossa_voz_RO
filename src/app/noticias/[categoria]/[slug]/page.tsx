@@ -82,8 +82,8 @@ export default async function NewsArticlePage({ params }: NewsArticlePageProps) 
             </Link>
 
             <div className="space-y-4">
-              <h1 className="text-display">{article.title}</h1>
-              <p className="text-body-lg text-text-muted">{article.summary}</p>
+              <h1 className="break-words text-display">{article.title}</h1>
+              <p className="break-words text-body-lg text-text-muted">{article.summary}</p>
             </div>
 
             <div className="space-y-2 border-t border-border pt-4">

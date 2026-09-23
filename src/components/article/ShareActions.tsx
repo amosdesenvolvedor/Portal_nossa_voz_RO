@@ -22,7 +22,7 @@ function ShareIcon() {
 }
 
 const linkClassName =
-  "inline-flex h-9 items-center justify-center rounded-md border border-border-strong bg-surface px-3.5 text-body-sm font-semibold no-underline text-text transition-colors duration-fast ease-standard hover:bg-surface-secondary";
+  "inline-flex h-11 items-center justify-center rounded-md border border-border-strong bg-surface px-4 text-body-sm font-semibold no-underline text-text transition-colors duration-fast ease-standard hover:bg-surface-secondary";
 
 export function ShareActions({ title, className }: ShareActionsProps) {
   const [currentUrl, setCurrentUrl] = useState("");
@@ -74,12 +74,19 @@ export function ShareActions({ title, className }: ShareActionsProps) {
   return (
     <div className={cn("space-y-3", className)}>
       <div className="flex flex-wrap gap-2">
-        <Button variant="outline" size="sm" startIcon={<ShareIcon />} onClick={handleCopyLink} disabled={!currentUrl}>
+        <Button
+          variant="outline"
+          size="sm"
+          className="h-11 px-4"
+          startIcon={<ShareIcon />}
+          onClick={handleCopyLink}
+          disabled={!currentUrl}
+        >
           Copiar link
         </Button>
 
         {nativeShareAvailable ? (
-          <Button variant="ghost" size="sm" onClick={handleNativeShare} disabled={!currentUrl}>
+          <Button variant="ghost" size="sm" className="h-11 px-4" onClick={handleNativeShare} disabled={!currentUrl}>
             Compartilhar no dispositivo
           </Button>
         ) : null}

@@ -26,7 +26,7 @@ export function EditorialPagination({
       {safePage > 1 ? (
         <Link
           href={hrefForPage(safePage - 1)}
-          className="inline-flex h-9 items-center rounded-sm border border-border px-3 text-body-sm font-semibold no-underline text-text hover:bg-surface-secondary"
+          className="inline-flex h-11 items-center rounded-sm border border-border px-4 text-body-sm font-semibold no-underline text-text hover:bg-surface-secondary"
         >
           Anterior
         </Link>
@@ -41,14 +41,14 @@ export function EditorialPagination({
               {isCurrent ? (
                 <span
                   aria-current="page"
-                  className="inline-flex h-9 min-w-9 items-center justify-center rounded-sm border border-brand-primary bg-brand-primary px-2 text-body-sm font-semibold text-text-inverse"
+                  className="inline-flex h-11 min-w-11 items-center justify-center rounded-sm border border-brand-primary bg-brand-primary px-3 text-body-sm font-semibold text-text-inverse"
                 >
                   {page}
                 </span>
               ) : (
                 <Link
                   href={hrefForPage(page)}
-                  className="inline-flex h-9 min-w-9 items-center justify-center rounded-sm border border-border px-2 text-body-sm font-semibold no-underline text-text hover:bg-surface-secondary"
+                  className="inline-flex h-11 min-w-11 items-center justify-center rounded-sm border border-border px-3 text-body-sm font-semibold no-underline text-text hover:bg-surface-secondary"
                 >
                   {page}
                 </Link>
@@ -61,7 +61,7 @@ export function EditorialPagination({
       {safePage < totalPages ? (
         <Link
           href={hrefForPage(safePage + 1)}
-          className="inline-flex h-9 items-center rounded-sm border border-border px-3 text-body-sm font-semibold no-underline text-text hover:bg-surface-secondary"
+          className="inline-flex h-11 items-center rounded-sm border border-border px-4 text-body-sm font-semibold no-underline text-text hover:bg-surface-secondary"
         >
           Proxima
         </Link>
