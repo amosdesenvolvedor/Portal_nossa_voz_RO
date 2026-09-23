@@ -8,14 +8,15 @@ import { Container } from "@/components/ui/Container";
 import { Divider } from "@/components/ui/Divider";
 import { NewsCard } from "@/components/ui/NewsCard";
 import { SectionHeading } from "@/components/ui/SectionHeading";
+import { toUrlSlug } from "@/config/site";
 import { HOME_DEMO_DATA } from "@/data/home-demo";
 
 export default function Home() {
   const lead = HOME_DEMO_DATA.leadStory;
 
   return (
-    <main className="bg-canvas py-6 md:py-8">
-      <Container className="space-y-8 md:space-y-10">
+    <main className="bg-canvas py-4 md:py-6">
+      <Container className="space-y-6 md:space-y-8">
         <h1 className="sr-only">Nossa Voz RO - Inicio</h1>
 
         <AdSlot position="HOME_TOP" />
@@ -28,7 +29,7 @@ export default function Home() {
               <article key={story.slug} className="surface-card p-4 md:p-5">
                 <p className="text-caption font-semibold uppercase tracking-[0.08em] text-brand-secondary">{story.category}</p>
                 <h2 className="mt-2 text-h4">
-                  <Link href={`/noticias/${story.category.toLowerCase().replace(/\s+/g, "-")}/${story.slug}`} className="text-text no-underline hover:text-brand-secondary">
+                  <Link href={`/noticias/${toUrlSlug(story.category)}/${story.slug}`} className="text-text no-underline hover:text-brand-secondary">
                     {story.title}
                   </Link>
                 </h2>
@@ -47,19 +48,19 @@ export default function Home() {
           <div className="space-y-10">
             <section className="space-y-5">
               <SectionHeading
-                title="Ultimas noticias"
-                subtitle="Fluxo cronologico demonstrativo para futuras atualizacoes editoriais em tempo de publicacao."
+                title="Últimas notícias"
+                subtitle="Fluxo cronológico demonstrativo para futuras atualizações editoriais em tempo de publicação."
               />
               <LatestNewsList items={HOME_DEMO_DATA.latestNews} />
             </section>
 
             <section className="space-y-5">
               <SectionHeading
-                title="Nossa regiao"
+                title="Nossa região"
                 subtitle="Cobertura regional com foco na Zona da Mata e no eixo da BR-429."
                 actions={
                   <Link href="/municipios" className="text-body-sm font-semibold">
-                    Ver municipios
+                    Ver municípios
                   </Link>
                 }
               />
@@ -69,7 +70,7 @@ export default function Home() {
                   <NewsCard
                     key={story.slug}
                     className={index === 0 ? "md:col-span-2" : undefined}
-                    href={`/noticias/${story.category.toLowerCase().replace(/\s+/g, "-")}/${story.slug}`}
+                    href={`/noticias/${toUrlSlug(story.category)}/${story.slug}`}
                     title={story.title}
                     summary={story.summary}
                     category={story.category}
@@ -92,7 +93,7 @@ export default function Home() {
                   Editorias em destaque
                 </h2>
                 <p className="text-body-sm text-text-muted">
-                  Composicao inicial da Home com secoes editaveis futuramente via curadoria editorial.
+                  Composição inicial da Home com seções editáveis futuramente via curadoria editorial.
                 </p>
               </header>
 
@@ -121,7 +122,7 @@ export default function Home() {
                 href="/noticias"
                 className="inline-flex h-11 items-center justify-center rounded-md border border-border-strong bg-surface px-5 text-body font-semibold no-underline text-text hover:bg-surface-secondary"
               >
-                Ver mais noticias
+                Ver mais notícias
               </Link>
             </div>
           </div>
@@ -130,7 +131,7 @@ export default function Home() {
             <AdSlot position="SIDEBAR" />
 
             <section className="surface-card p-5">
-              <h2 className="text-h4">Acompanhe tambem</h2>
+              <h2 className="text-h4">Acompanhe também</h2>
               <Divider className="my-3" />
               <ul className="space-y-3">
                 {HOME_DEMO_DATA.sidebarStories.map((story) => (
@@ -138,7 +139,7 @@ export default function Home() {
                     <article className="space-y-1.5">
                       <p className="text-caption font-semibold uppercase tracking-[0.08em] text-brand-secondary">{story.category}</p>
                       <h3 className="text-body font-semibold">
-                        <Link href={`/noticias/${story.category.toLowerCase().replace(/\s+/g, "-")}/${story.slug}`} className="text-text no-underline hover:text-brand-secondary">
+                        <Link href={`/noticias/${toUrlSlug(story.category)}/${story.slug}`} className="text-text no-underline hover:text-brand-secondary">
                           {story.title}
                         </Link>
                       </h3>
@@ -150,7 +151,7 @@ export default function Home() {
             </section>
 
             <section className="surface-card p-5">
-              <h2 className="text-h4">Acesso rapido</h2>
+              <h2 className="text-h4">Acesso rápido</h2>
               <ul className="mt-3 space-y-2">
                 <li>
                   <Link href="/noticias/empregos" className="text-body-sm font-semibold">
@@ -164,7 +165,7 @@ export default function Home() {
                 </li>
                 <li>
                   <Link href="/municipios" className="text-body-sm font-semibold">
-                    Cobertura por municipios
+                    Cobertura por municípios
                   </Link>
                 </li>
               </ul>

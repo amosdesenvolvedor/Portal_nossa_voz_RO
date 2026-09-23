@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { Badge } from "@/components/ui/Badge";
+import { EditorialImagePlaceholder } from "@/components/ui/EditorialImagePlaceholder";
 import { cn } from "@/lib/utils/cn";
 
 type NewsCardProps = {
@@ -34,9 +35,7 @@ export function NewsCard({
         {imageSrc ? (
           <Image src={imageSrc} alt={imageAlt} fill sizes="(max-width: 768px) 100vw, 50vw" className="object-cover" />
         ) : (
-          <div className="flex h-full items-center justify-center bg-gradient-to-br from-surface-secondary to-canvas px-4 text-center">
-            <p className="text-body-sm font-medium text-text-muted">Sem imagem definida</p>
-          </div>
+          <EditorialImagePlaceholder label="Imagem de apoio" />
         )}
       </div>
 

@@ -7,18 +7,20 @@ type AdSlotProps = {
 };
 
 export function AdSlot({ position, className }: AdSlotProps) {
+  const isDevelopment = process.env.NODE_ENV !== "production";
+
   return (
     <aside
-      aria-label={`Espaco publicitario ${position}`}
+      aria-label={`Espaço publicitário ${position}`}
       className={cn(
-        "surface-card border-dashed p-4 text-center",
+        "surface-card border-dashed px-4 py-2.5 text-center md:py-3",
         "text-caption uppercase tracking-[0.08em] text-text-muted",
         className,
       )}
     >
       <p className="font-semibold text-brand-secondary">Publicidade</p>
-      <p className="mt-1">Espaco publicitario</p>
-      <p className="mt-1 normal-case tracking-normal">Posicao: {position}</p>
+      <p className="mt-1">Espaço publicitário</p>
+      {isDevelopment ? <p className="mt-1 normal-case tracking-normal">Posição: {position}</p> : null}
     </aside>
   );
 }

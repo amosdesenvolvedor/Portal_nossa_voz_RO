@@ -19,11 +19,34 @@ function slugify(input: string): string {
     .replace(/\s+/g, "-");
 }
 
+export function toUrlSlug(input: string): string {
+  return slugify(input);
+}
+
+const categoryLabelMap: Record<string, string> = {
+  "Noticias Locais": "Notícias locais",
+  Politica: "Política",
+  Policia: "Polícia",
+  Saude: "Saúde",
+  Educacao: "Educação",
+  Esportes: "Esportes",
+  Economia: "Economia",
+  Agricultura: "Agricultura",
+  Cultura: "Cultura",
+  Eventos: "Eventos",
+  Empregos: "Empregos",
+  Classificados: "Classificados",
+};
+
+function toDisplayCategoryLabel(category: string): string {
+  return categoryLabelMap[category] ?? category;
+}
+
 const categoryNavigation: CategoryNavItem[] = DEFAULT_NEWS_CATEGORIES.map((category) => {
   const slug = slugify(category);
 
   return {
-    label: category,
+    label: toDisplayCategoryLabel(category),
     slug,
     href: `/noticias/${slug}`,
   };
@@ -44,8 +67,8 @@ export const SITE_CONFIG = {
 
 export const MAIN_NAVIGATION: NavItem[] = [
   { label: "Home", href: "/" },
-  { label: "Noticias", href: "/noticias" },
-  { label: "Municipios", href: "/municipios" },
+  { label: "Notícias", href: "/noticias" },
+  { label: "Municípios", href: "/municipios" },
   { label: "Autores", href: "/autores" },
   { label: "Busca", href: "/busca" },
 ];
@@ -54,13 +77,13 @@ export const INSTITUTIONAL_NAVIGATION: NavItem[] = [
   { label: "Sobre", href: "/sobre" },
   { label: "Contato", href: "/contato" },
   { label: "Publicidade", href: "/publicidade" },
-  { label: "Politica de Privacidade", href: "/politica-de-privacidade" },
+  { label: "Política de Privacidade", href: "/politica-de-privacidade" },
 ];
 
 export const FEATURED_MUNICIPALITY_NAVIGATION: NavItem[] = [
   { label: "Rolim de Moura", href: "/municipios/rolim-de-moura" },
   { label: "Alta Floresta d'Oeste", href: "/municipios/alta-floresta-doeste" },
-  { label: "Sao Miguel do Guapore", href: "/municipios/sao-miguel-do-guapore" },
+  { label: "São Miguel do Guaporé", href: "/municipios/sao-miguel-do-guapore" },
 ];
 
 export const CATEGORY_NAVIGATION = categoryNavigation;

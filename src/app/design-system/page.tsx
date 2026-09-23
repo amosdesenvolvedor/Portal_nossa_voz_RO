@@ -26,7 +26,7 @@ const demoNews = [
     title: "Portal Nossa Voz RO inicia preparacao de sua nova plataforma digital",
     summary:
       "Conteudo demonstrativo para validar tipografia, espacamento, links e comportamento responsivo do card base.",
-    category: "Politica",
+    category: "Política",
     municipality: "Rolim de Moura",
     publishedAt: "22 set 2026",
     author: "Redacao Demonstrativa",
@@ -35,7 +35,7 @@ const demoNews = [
     title: "Cobertura regional da BR-429 ganha estrutura editorial dedicada",
     summary:
       "Exemplo ficticio usado exclusivamente para validacao visual do componente de noticia sem depender de dados reais.",
-    category: "Noticias Locais",
+    category: "Notícias locais",
     municipality: "Alta Floresta d'Oeste",
     publishedAt: "21 set 2026",
   },
@@ -141,8 +141,8 @@ export default function DesignSystemPage() {
             subtitle="Categorias, municipios e tags usam o mesmo idioma visual para evitar poluicao cromatica."
           />
           <div className="surface-card flex flex-wrap items-center gap-3 p-5 md:p-7">
-            <Badge variant="category">Politica</Badge>
-            <Badge variant="category">Saude</Badge>
+            <Badge variant="category">Política</Badge>
+            <Badge variant="category">Saúde</Badge>
             <Badge variant="municipality">Rolim de Moura</Badge>
             <Badge variant="tag">Agricultura</Badge>
             <Badge variant="status">In Review</Badge>

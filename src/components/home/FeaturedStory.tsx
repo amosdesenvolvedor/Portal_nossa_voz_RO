@@ -1,6 +1,8 @@
 import Image from "next/image";
 import Link from "next/link";
 import { Badge } from "@/components/ui/Badge";
+import { EditorialImagePlaceholder } from "@/components/ui/EditorialImagePlaceholder";
+import { toUrlSlug } from "@/config/site";
 import type { DemoStory } from "@/data/home-demo";
 
 type FeaturedStoryProps = {
@@ -21,9 +23,7 @@ export function FeaturedStory({ story }: FeaturedStoryProps) {
             className="object-cover"
           />
         ) : (
-          <div className="flex h-full items-center justify-center bg-surface-secondary text-body-sm text-text-muted">
-            Imagem demonstrativa
-          </div>
+          <EditorialImagePlaceholder label="Destaque editorial" />
         )}
       </div>
 
@@ -32,7 +32,7 @@ export function FeaturedStory({ story }: FeaturedStoryProps) {
           <Badge variant="category">{story.category}</Badge>
           <h2 className="text-h1">
             <Link
-              href={`/noticias/${story.category.toLowerCase().replace(/\s+/g, "-")}/${story.slug}`}
+              href={`/noticias/${toUrlSlug(story.category)}/${story.slug}`}
               className="text-text no-underline hover:text-brand-secondary"
             >
               {story.title}
