@@ -161,3 +161,17 @@ Rota interna:
 
 Objetivo:
 - validar rapidamente paleta, tipografia, botoes, badges, links, headings e news cards antes da Home final (Prompt 04)
+
+## 15. Evolucao editorial reutilizavel (Prompt 05)
+
+`/design-system` passou a validar tambem:
+- variantes de `NewsCard` (standard, horizontal, compact)
+- `EditorialMeta`
+- `EditorialByline`
+- `EditorialTagList`
+- `EditorialImageCaption`
+- `EditorialEmptyState`
+- `EditorialPagination`
+
+Referencia:
+- `docs/EDITORIAL_COMPONENTS.md`

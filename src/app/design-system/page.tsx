@@ -1,5 +1,11 @@
 import Link from "next/link";
 import { BrandLogo } from "@/components/brand/BrandLogo";
+import { EditorialByline } from "@/components/editorial/EditorialByline";
+import { EditorialEmptyState } from "@/components/editorial/EditorialEmptyState";
+import { EditorialImageCaption } from "@/components/editorial/EditorialImageCaption";
+import { EditorialMeta } from "@/components/editorial/EditorialMeta";
+import { EditorialPagination } from "@/components/editorial/EditorialPagination";
+import { EditorialTagList } from "@/components/editorial/EditorialTagList";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Container } from "@/components/ui/Container";
@@ -157,7 +163,52 @@ export default function DesignSystemPage() {
           />
           <div className="grid gap-4 lg:grid-cols-2">
             <NewsCard {...demoNews[0]} imageSrc="/globe.svg" imageAlt="Imagem demonstrativa do card" />
-            <NewsCard {...demoNews[1]} />
+            <NewsCard {...demoNews[1]} variant="horizontal" />
+            <NewsCard {...demoNews[1]} variant="compact" />
+          </div>
+        </section>
+
+        <section className="space-y-6 pb-6">
+          <SectionHeading
+            eyebrow="Editorial"
+            title="Metadados e estrutura reutilizavel"
+            subtitle="Componentes compartilhados para autoria, tags, legenda de imagem, vazio e paginacao."
+          />
+
+          <div className="surface-card space-y-5 p-5 md:p-7">
+            <EditorialMeta
+              publishedAtLabel="22 set 2026 • 09:40"
+              publishedAtISO="2026-09-22T09:40:00-04:00"
+              municipality="Zona da Mata"
+              author="Redacao Demonstrativa"
+            />
+            <EditorialByline author="Redacao Demonstrativa" role="Equipe local" />
+            <EditorialTagList
+              tags={[
+                { label: "Politica", href: "/noticias/politica" },
+                { label: "Zona da Mata" },
+                { label: "Cobertura regional" },
+              ]}
+            />
+            <figure className="space-y-2">
+              <div className="h-24 rounded-sm border border-border bg-surface-secondary" />
+              <EditorialImageCaption
+                caption="Imagem demonstrativa para composicao editorial"
+                credit="Arquivo interno"
+              />
+            </figure>
+
+            <EditorialPagination currentPage={2} totalPages={5} hrefForPage={(page) => `/noticias?page=${page}`} />
+
+            <EditorialEmptyState
+              title="Nenhuma materia encontrada"
+              description="Use filtros diferentes ou volte para a pagina de noticias para continuar navegando."
+              action={
+                <Link href="/noticias" className="text-body-sm font-semibold">
+                  Ver noticias
+                </Link>
+              }
+            />
           </div>
         </section>
       </Container>

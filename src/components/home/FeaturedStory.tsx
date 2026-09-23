@@ -1,9 +1,10 @@
 import Image from "next/image";
 import Link from "next/link";
+import { EditorialMeta } from "@/components/editorial/EditorialMeta";
 import { Badge } from "@/components/ui/Badge";
 import { EditorialImagePlaceholder } from "@/components/ui/EditorialImagePlaceholder";
-import { toUrlSlug } from "@/config/site";
 import type { DemoStory } from "@/data/home-demo";
+import { buildNewsHref } from "@/lib/editorial/urls";
 
 type FeaturedStoryProps = {
   story: DemoStory;
@@ -32,7 +33,7 @@ export function FeaturedStory({ story }: FeaturedStoryProps) {
           <Badge variant="category">{story.category}</Badge>
           <h2 className="text-h1">
             <Link
-              href={`/noticias/${toUrlSlug(story.category)}/${story.slug}`}
+              href={buildNewsHref(story.category, story.slug)}
               className="text-text no-underline hover:text-brand-secondary"
             >
               {story.title}
@@ -44,7 +45,7 @@ export function FeaturedStory({ story }: FeaturedStoryProps) {
         <footer className="flex flex-wrap items-center gap-x-3 gap-y-1 text-body-sm text-text-muted">
           <Badge variant="municipality">{story.municipality}</Badge>
           <span aria-hidden>•</span>
-          <time dateTime="2026-09-22T09:40:00-04:00">{story.publishedAt}</time>
+          <EditorialMeta publishedAtLabel={story.publishedAt} publishedAtISO={story.publishedAtISO} />
         </footer>
       </div>
     </article>

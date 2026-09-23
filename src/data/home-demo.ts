@@ -7,12 +7,15 @@ export type DemoStory = {
   summary: string;
   municipality: string;
   publishedAt: string;
+  publishedAtISO?: string;
+  author?: string;
   imageSrc?: string;
   imageAlt?: string;
 };
 
 export type LatestItem = {
-  time: string;
+  timeLabel: string;
+  publishedAtISO: string;
   category: string;
   title: string;
   municipality?: string;
@@ -50,6 +53,7 @@ export const HOME_DEMO_DATA: HomeDemoData = {
       "Conteúdo demonstrativo para validar a área de manchete principal da Home com foco em leitura, hierarquia e navegação.",
     municipality: "Zona da Mata",
     publishedAt: "22 set 2026 • 09:40",
+    publishedAtISO: "2026-09-22T09:40:00-04:00",
   },
   secondaryHighlights: [
     {
@@ -59,6 +63,7 @@ export const HOME_DEMO_DATA: HomeDemoData = {
       summary: "Exemplo neutro para validar destaque secundário com hierarquia menor que a manchete.",
       municipality: "Rolim de Moura",
       publishedAt: "22 set 2026 • 09:12",
+      publishedAtISO: "2026-09-22T09:12:00-04:00",
       imageSrc: "/globe.svg",
       imageAlt: "Ilustração demonstrativa",
     },
@@ -69,6 +74,7 @@ export const HOME_DEMO_DATA: HomeDemoData = {
       summary: "Conteúdo demonstrativo de apoio para composição editorial da Home.",
       municipality: "São Miguel do Guaporé",
       publishedAt: "22 set 2026 • 08:55",
+      publishedAtISO: "2026-09-22T08:55:00-04:00",
     },
     {
       slug: "painel-categorias-publicas",
@@ -77,38 +83,44 @@ export const HOME_DEMO_DATA: HomeDemoData = {
       summary: "Item demonstrativo sem fatos reais para validar densidade da coluna lateral de destaques.",
       municipality: "Alta Floresta d'Oeste",
       publishedAt: "22 set 2026 • 08:27",
+      publishedAtISO: "2026-09-22T08:27:00-04:00",
     },
   ],
   latestNews: [
     {
-      time: "09:42",
+      timeLabel: "09:42",
+      publishedAtISO: "2026-09-22T09:42:00-04:00",
       category: "Política",
       title: "Home passa a exibir hierarquia editorial com foco em leitura mobile",
       municipality: "Rolim de Moura",
       href: "/noticias/politica/home-com-hierarquia-editorial",
     },
     {
-      time: "09:15",
+      timeLabel: "09:15",
+      publishedAtISO: "2026-09-22T09:15:00-04:00",
       category: "Saúde",
       title: "Estrutura de seções prepara entradas para novos cadernos regionais",
       municipality: "Zona da Mata",
       href: "/noticias/saude/estrutura-de-secoes-regionais",
     },
     {
-      time: "08:58",
+      timeLabel: "08:58",
+      publishedAtISO: "2026-09-22T08:58:00-04:00",
       category: "Educação",
       title: "Layout de notícias em ordem cronológica é validado para próximas etapas",
       href: "/noticias/educacao/layout-cronologico-validado",
     },
     {
-      time: "08:30",
+      timeLabel: "08:30",
+      publishedAtISO: "2026-09-22T08:30:00-04:00",
       category: "Economia",
       title: "Navegacao publica passa a integrar blocos editoriais da Home",
       municipality: "BR-429",
       href: "/noticias/economia/navegacao-publica-integrada",
     },
     {
-      time: "08:02",
+      timeLabel: "08:02",
+      publishedAtISO: "2026-09-22T08:02:00-04:00",
       category: "Cultura",
       title: "Componentes do design system sustentam crescimento do portal",
       href: "/noticias/cultura/componentes-sustentam-crescimento",
@@ -122,6 +134,7 @@ export const HOME_DEMO_DATA: HomeDemoData = {
       summary: "Exemplo demonstrativo de matéria regional com identificação clara de município e contexto.",
       municipality: "Alta Floresta d'Oeste",
       publishedAt: "22 set 2026 • 07:45",
+      publishedAtISO: "2026-09-22T07:45:00-04:00",
       imageSrc: "/window.svg",
       imageAlt: "Ilustração demonstrativa de cobertura local",
     },
@@ -132,6 +145,7 @@ export const HOME_DEMO_DATA: HomeDemoData = {
       summary: "Conteúdo ilustrativo para validar seção Nossa Região sem dependência de dados externos.",
       municipality: "BR-429",
       publishedAt: "22 set 2026 • 07:18",
+      publishedAtISO: "2026-09-22T07:18:00-04:00",
     },
     {
       slug: "municipios-em-evidencia",
@@ -140,6 +154,7 @@ export const HOME_DEMO_DATA: HomeDemoData = {
       summary: "Demonstração da estratégia regional para navegação por localidade.",
       municipality: "São Miguel do Guaporé",
       publishedAt: "22 set 2026 • 06:52",
+      publishedAtISO: "2026-09-22T06:52:00-04:00",
     },
   ],
   categoryBlocks: [
@@ -156,6 +171,7 @@ export const HOME_DEMO_DATA: HomeDemoData = {
           summary: "Modelo demonstrativo para futuras escolhas editoriais sem conteúdo factual real.",
           municipality: "Rondônia",
           publishedAt: "22 set 2026 • 06:35",
+          publishedAtISO: "2026-09-22T06:35:00-04:00",
         },
         {
           slug: "rotas-publicas-politica",
@@ -164,6 +180,7 @@ export const HOME_DEMO_DATA: HomeDemoData = {
           summary: "Exemplo de item secundário para composição da seção.",
           municipality: "Zona da Mata",
           publishedAt: "22 set 2026 • 06:10",
+          publishedAtISO: "2026-09-22T06:10:00-04:00",
         },
       ],
     },
@@ -180,6 +197,7 @@ export const HOME_DEMO_DATA: HomeDemoData = {
           summary: "Conteúdo fictício e neutro para validar distribuição de notícias por editoria.",
           municipality: "Rolim de Moura",
           publishedAt: "22 set 2026 • 05:48",
+          publishedAtISO: "2026-09-22T05:48:00-04:00",
         },
         {
           slug: "tecnologia-rural",
@@ -188,6 +206,7 @@ export const HOME_DEMO_DATA: HomeDemoData = {
           summary: "Item de demonstração para visualizar variação de títulos na mesma seção.",
           municipality: "Alta Floresta d'Oeste",
           publishedAt: "22 set 2026 • 05:21",
+          publishedAtISO: "2026-09-22T05:21:00-04:00",
         },
       ],
     },
@@ -204,6 +223,7 @@ export const HOME_DEMO_DATA: HomeDemoData = {
           summary: "Exemplo propositalmente genérico para validar layout sem criar narrativas indevidas.",
           municipality: "São Miguel do Guaporé",
           publishedAt: "22 set 2026 • 05:02",
+          publishedAtISO: "2026-09-22T05:02:00-04:00",
         },
       ],
     },
@@ -235,6 +255,7 @@ export const HOME_DEMO_DATA: HomeDemoData = {
       summary: "Item demonstrativo para coluna lateral.",
       municipality: "BR-429",
       publishedAt: "22 set 2026 • 04:40",
+      publishedAtISO: "2026-09-22T04:40:00-04:00",
     },
     {
       slug: "agenda-regional",
@@ -243,6 +264,7 @@ export const HOME_DEMO_DATA: HomeDemoData = {
       summary: "Exemplo visual de chamada lateral.",
       municipality: "Zona da Mata",
       publishedAt: "22 set 2026 • 04:15",
+      publishedAtISO: "2026-09-22T04:15:00-04:00",
     },
   ],
   adSlots: ["HOME_TOP", "HOME_MIDDLE", "SIDEBAR"],

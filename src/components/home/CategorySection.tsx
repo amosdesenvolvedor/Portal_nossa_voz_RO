@@ -2,7 +2,7 @@ import Link from "next/link";
 import { NewsCard } from "@/components/ui/NewsCard";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 import type { CategoryBlock } from "@/data/home-demo";
-import { toUrlSlug } from "@/config/site";
+import { buildNewsHref } from "@/lib/editorial/urls";
 
 type CategorySectionProps = {
   block: CategoryBlock;
@@ -29,12 +29,13 @@ export function CategorySection({ block }: CategorySectionProps) {
         {block.stories.slice(0, 2).map((story) => (
           <NewsCard
             key={story.slug}
-            href={`/noticias/${toUrlSlug(story.category)}/${story.slug}`}
+            href={buildNewsHref(story.category, story.slug)}
             title={story.title}
             summary={story.summary}
             category={story.category}
             municipality={story.municipality}
             publishedAt={story.publishedAt}
+            publishedAtISO={story.publishedAtISO}
             imageSrc={story.imageSrc}
             imageAlt={story.imageAlt}
           />

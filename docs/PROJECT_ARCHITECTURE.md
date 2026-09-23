@@ -188,3 +188,20 @@ Observacao:
 - Dados da Home centralizados em `src/data/home-demo.ts` como fonte temporaria tipada.
 - Componentes especificos da Home em `src/components/home`.
 - Integracao futura prevista para curadoria editorial e dados reais sem reescrever a camada de apresentacao.
+
+## 19. Camada editorial reutilizavel (Prompt 05)
+
+- Tipos de apresentacao editorial centralizados em `src/lib/editorial/presentation.ts`.
+- Helpers editoriais centralizados:
+	- `src/lib/editorial/date.ts`
+	- `src/lib/editorial/urls.ts`
+- Componentes reutilizaveis em `src/components/editorial`:
+	- `EditorialMeta`
+	- `EditorialByline`
+	- `EditorialTagList`
+	- `EditorialImageCaption`
+	- `EditorialEmptyState`
+	- `EditorialPagination`
+- `NewsCard` evoluido com variantes reutilizaveis (`standard`, `horizontal`, `compact`) mantendo API simples.
+- Home preservada visualmente com reducao de duplicacao de metadados e montagem de URLs.
+- Documentacao complementar: `docs/EDITORIAL_COMPONENTS.md`.

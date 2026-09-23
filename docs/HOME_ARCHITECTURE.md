@@ -14,6 +14,7 @@ Caracteristicas:
 - sem fatos reais sensiveis
 - sem aleatoriedade em runtime
 - estrutura pronta para substituicao por queries futuras
+- campos `publishedAtISO` adicionados para metadados deterministas em componentes reutilizaveis
 
 ## Hierarquia editorial implementada
 
@@ -47,6 +48,7 @@ Componentes reutilizados:
 - `NewsCard`
 - `Divider`
 - `Badge`
+- `EditorialMeta`
 
 ## Publicidade (estrutura)
 
@@ -77,3 +79,4 @@ A composicao aceita listas com quantidade variavel (1, 2 ou varias entradas) sem
 Estrategia prevista:
 - substituir `home-demo.ts` por camada de consulta (services/repositories)
 - preservar contratos de dados por tipo para minimizar refatoracao de UI
+- preservar camada editorial reutilizavel documentada em `docs/EDITORIAL_COMPONENTS.md`

@@ -4,12 +4,13 @@ import { CategorySection } from "@/components/home/CategorySection";
 import { FeaturedStory } from "@/components/home/FeaturedStory";
 import { LatestNewsList } from "@/components/home/LatestNewsList";
 import { MunicipalityDirectory } from "@/components/home/MunicipalityDirectory";
+import { EditorialMeta } from "@/components/editorial/EditorialMeta";
 import { Container } from "@/components/ui/Container";
 import { Divider } from "@/components/ui/Divider";
 import { NewsCard } from "@/components/ui/NewsCard";
 import { SectionHeading } from "@/components/ui/SectionHeading";
-import { toUrlSlug } from "@/config/site";
 import { HOME_DEMO_DATA } from "@/data/home-demo";
+import { buildNewsHref } from "@/lib/editorial/urls";
 
 export default function Home() {
   const lead = HOME_DEMO_DATA.leadStory;
@@ -29,16 +30,17 @@ export default function Home() {
               <article key={story.slug} className="surface-card p-4 md:p-5">
                 <p className="text-caption font-semibold uppercase tracking-[0.08em] text-brand-secondary">{story.category}</p>
                 <h2 className="mt-2 text-h4">
-                  <Link href={`/noticias/${toUrlSlug(story.category)}/${story.slug}`} className="text-text no-underline hover:text-brand-secondary">
+                  <Link href={buildNewsHref(story.category, story.slug)} className="text-text no-underline hover:text-brand-secondary">
                     {story.title}
                   </Link>
                 </h2>
                 <p className="mt-2 text-body-sm text-text-muted">{story.summary}</p>
-                <div className="mt-3 flex items-center gap-2 text-caption text-text-muted">
-                  <span>{story.municipality}</span>
-                  <span aria-hidden>•</span>
-                  <time dateTime="2026-09-22T09:00:00-04:00">{story.publishedAt}</time>
-                </div>
+                <EditorialMeta
+                  className="mt-3"
+                  municipality={story.municipality}
+                  publishedAtLabel={story.publishedAt}
+                  publishedAtISO={story.publishedAtISO}
+                />
               </article>
             ))}
           </div>
@@ -70,12 +72,13 @@ export default function Home() {
                   <NewsCard
                     key={story.slug}
                     className={index === 0 ? "md:col-span-2" : undefined}
-                    href={`/noticias/${toUrlSlug(story.category)}/${story.slug}`}
+                    href={buildNewsHref(story.category, story.slug)}
                     title={story.title}
                     summary={story.summary}
                     category={story.category}
                     municipality={story.municipality}
                     publishedAt={story.publishedAt}
+                    publishedAtISO={story.publishedAtISO}
                     imageSrc={story.imageSrc}
                     imageAlt={story.imageAlt}
                   />
@@ -139,7 +142,7 @@ export default function Home() {
                     <article className="space-y-1.5">
                       <p className="text-caption font-semibold uppercase tracking-[0.08em] text-brand-secondary">{story.category}</p>
                       <h3 className="text-body font-semibold">
-                        <Link href={`/noticias/${toUrlSlug(story.category)}/${story.slug}`} className="text-text no-underline hover:text-brand-secondary">
+                        <Link href={buildNewsHref(story.category, story.slug)} className="text-text no-underline hover:text-brand-secondary">
                           {story.title}
                         </Link>
                       </h3>
