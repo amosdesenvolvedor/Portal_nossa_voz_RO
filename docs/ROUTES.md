@@ -8,7 +8,7 @@
 | /design-system | Validacao interna de componentes visuais | Estatica | Ativa | Mantida para evolucao do DS |
 | /noticias | Hub de noticias e categorias | Estatica | Placeholder ativo | DB (news, category) |
 | /noticias/[categoria] | Listagem por categoria | Dinamica | Estrutural com validacao de slug temporario | DB (category, news) |
-| /noticias/[categoria]/[slug] | Pagina de noticia | Dinamica | Estrutural | DB (news + relations) |
+| /noticias/[categoria]/[slug] | Pagina de noticia | Dinamica | Materia demonstrativa ativa | DB (news + relations) |
 | /municipios | Hub de cobertura regional | Estatica | Placeholder ativo | DB (municipality, region) |
 | /municipios/[slug] | Pagina por municipio | Dinamica | Estrutural | DB (municipality, news) |
 | /busca | Entrada para busca publica | Estatica | Placeholder ativo | Indice/busca (Prompt futuro) |

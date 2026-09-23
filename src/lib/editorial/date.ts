@@ -1,7 +1,11 @@
 const DEFAULT_LOCALE = "pt-BR";
 const DEFAULT_TIME_ZONE = "America/Porto_Velho";
 
-function toDate(input: string | Date): Date | null {
+function toDate(input: string | Date | undefined): Date | null {
+  if (!input) {
+    return null;
+  }
+
   if (input instanceof Date) {
     return Number.isNaN(input.getTime()) ? null : input;
   }
@@ -50,4 +54,15 @@ export function formatEditorialDateTimeLabel(input: string | Date, locale = DEFA
   }
 
   return `${dateLabel} • ${timeLabel}`;
+}
+
+export function hasEditorialUpdate(publishedAt: string | Date, updatedAt?: string | Date): boolean {
+  const publishedDate = toDate(publishedAt);
+  const updatedDate = toDate(updatedAt);
+
+  if (!publishedDate || !updatedDate) {
+    return false;
+  }
+
+  return publishedDate.getTime() !== updatedDate.getTime();
 }

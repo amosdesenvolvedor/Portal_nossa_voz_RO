@@ -205,3 +205,22 @@ Observacao:
 - `NewsCard` evoluido com variantes reutilizaveis (`standard`, `horizontal`, `compact`) mantendo API simples.
 - Home preservada visualmente com reducao de duplicacao de metadados e montagem de URLs.
 - Documentacao complementar: `docs/EDITORIAL_COMPONENTS.md`.
+
+## 20. Pagina de noticia publica (Prompt 06)
+
+- Rota publica consolidada em `src/app/noticias/[categoria]/[slug]/page.tsx`.
+- Conteudo demonstrativo tipado em `src/data/article-demo.ts`.
+- Blocos editoriais tipados em `src/lib/editorial/article-blocks.ts`.
+- Renderer controlado em `src/components/article/ArticleBody.tsx` sem HTML arbitrario.
+- Largura de leitura reutilizavel baseada em `--reading-max`.
+- Compartilhamento client-side isolado em `src/components/article/ShareActions.tsx`.
+- Documentacao complementar: `docs/ARTICLE_ARCHITECTURE.md`.
+
+## 21. Fundacao de assistencia editorial com IA (Prompt 06)
+
+- Integracao inicial server-side com OpenRouter em `src/lib/ai`.
+- Modelo configuravel por ambiente (`OPENROUTER_MODEL`) sem espalhar nome de modelo pela aplicacao.
+- Chave mantida apenas no servidor (`OPENROUTER_API_KEY`).
+- Respostas tratadas como sugestao editorial, nunca como publicacao.
+- Falhas do provedor retornam erro controlado e nao derrubam o portal publico.
+- Documentacao complementar: `docs/AI_EDITORIAL_ASSISTANCE.md`.
