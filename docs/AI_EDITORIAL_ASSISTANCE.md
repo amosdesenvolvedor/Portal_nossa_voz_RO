@@ -115,6 +115,28 @@ Integracao ativa no painel:
 - pagina administrativa de edicao inicial em `/admin/noticias/nova`
 - endpoint interno protegido em `POST /api/admin/ai/suggest`
 
+## UX editorial atualizada (Prompt 11.1)
+
+Experiencia visual consolidada como Assistencia Editorial IA:
+
+- IA posicionada como copiloto, sem dominar o editor
+- acoes rapidas em linguagem editorial:
+	- Revisar ortografia
+	- Melhorar clareza
+	- Sugerir titulo
+	- Sugerir subtitulo
+	- Resumir texto
+	- Sugerir tags
+- campo livre para pedidos contextuais da noticia atual
+- exibicao de resultado como Sugestao separada do texto original
+- acoes explicitas por sugestao:
+	- Aplicar sugestao
+	- Copiar
+	- Descartar
+	- Gerar outra sugestao
+- opcao de desfazer ultima aplicacao no formulario
+- no mobile, painel de IA em area dedicada acionada por botao
+
 Regras aplicadas na integracao:
 - apenas usuario autenticado do admin pode acionar IA
 - permissao passa por policy centralizada de role
@@ -123,12 +145,14 @@ Regras aplicadas na integracao:
 - resposta sempre exibida como sugestao separada
 - aplicacao da sugestao exige acao explicita do editor
 - falhas de IA nao apagam conteudo do formulario
+- falha da IA nao bloqueia escrita, edicao, salvamento ou workflow
 
 Garantias editoriais mantidas:
 - IA nao altera status para `PUBLISHED`
 - IA nao publica conteudo
 - IA nao aprova conteudo
 - autoridade editorial continua humana
+- IA sugere, humano revisa, humano aplica, humano salva, humano autorizado publica
 
 ## Validacao tecnica realizada
 

@@ -1,9 +1,9 @@
 import { notFound } from "next/navigation";
+import { AdminNewsEditorForm } from "@/components/admin/AdminNewsEditorForm";
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
-import { AdminStatusBadge } from "@/components/admin/AdminStatusBadge";
+import { getEditorialAIStatus } from "@/lib/ai/editorial";
 import { requireAuthSession } from "@/lib/auth/session";
-import { formatEditorialDateTimeLabel } from "@/lib/editorial/date";
-import { getAdminNewsById } from "@/lib/services/editorial-service";
+import { getAdminNewsById, listAdminReferenceData } from "@/lib/services/editorial-service";
 
 type AdminNewsDetailsPageProps = {
   params: Promise<{
@@ -22,43 +22,37 @@ export default async function AdminNewsDetailsPage({ params }: AdminNewsDetailsP
     notFound();
   }
 
-  const authorName = entry.author?.name ?? entry.createdBy.name;
-  const categoryName = entry.category?.name ?? "Sem categoria";
-  const municipalityName = entry.municipality?.name ?? "Sem município";
+  const [referenceData, aiStatus] = await Promise.all([listAdminReferenceData(), getEditorialAIStatus()]);
 
   return (
     <div className="space-y-6">
       <AdminPageHeader
-        title="Detalhes da notícia"
-        description="Detalhe persistente da notícia por identificador."
+        title="Editar notícia"
+        description="Atualize conteúdo e workflow mantendo o editor como protagonista."
       />
 
-      <article className="surface-card space-y-3 p-5">
-        <AdminStatusBadge status={entry.status} />
-        <h2 className="text-h3">{entry.title}</h2>
-        <dl className="grid gap-2 text-body-sm">
-          <div>
-            <dt className="font-semibold">Slug</dt>
-            <dd>/{entry.slug}</dd>
-          </div>
-          <div>
-            <dt className="font-semibold">Categoria</dt>
-            <dd>{categoryName}</dd>
-          </div>
-          <div>
-            <dt className="font-semibold">Autor</dt>
-            <dd>{authorName}</dd>
-          </div>
-          <div>
-            <dt className="font-semibold">Município</dt>
-            <dd>{municipalityName}</dd>
-          </div>
-          <div>
-            <dt className="font-semibold">Atualização</dt>
-            <dd>{formatEditorialDateTimeLabel(entry.updatedAt)}</dd>
-          </div>
-        </dl>
-      </article>
+      <AdminNewsEditorForm
+        categories={referenceData.categories.map((item) => ({ label: item.name, value: item.slug }))}
+        municipalities={referenceData.municipalities.map((item) => ({ label: item.name, value: item.slug }))}
+        authors={referenceData.authors.map((item) => ({ label: item.name, value: item.id }))}
+        userRole={session.user.role}
+        aiConfigured={aiStatus.configured}
+        initialDraft={{
+          id: entry.id,
+          status: entry.status,
+          title: entry.title,
+          slug: entry.slug,
+          summary: entry.summary ?? "",
+          categorySlug: entry.category?.slug ?? "",
+          municipalitySlug: entry.municipality?.slug ?? "",
+          authorId: entry.author?.id ?? entry.createdBy.id,
+          heroImageCaption: entry.heroImageCaption ?? "",
+          heroImageCredit: entry.heroImageCredit ?? "",
+          tags: entry.tags.map((tag) => tag.name),
+          blocks: Array.isArray(entry.contentBlocks) ? (entry.contentBlocks as never) : [],
+          expectedUpdatedAt: entry.updatedAt.toISOString(),
+        }}
+      />
     </div>
   );
 }

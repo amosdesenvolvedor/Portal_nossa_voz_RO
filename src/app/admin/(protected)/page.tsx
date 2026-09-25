@@ -19,62 +19,68 @@ export default async function AdminDashboardPage() {
   const draftCount = counts.DRAFT;
   const reviewCount = counts.IN_REVIEW;
   const publishedCount = counts.PUBLISHED;
-  const archivedCount = counts.ARCHIVED;
+  const firstName = (session.user.name || "Editor").trim().split(" ")[0];
 
   return (
     <div className="space-y-6">
       <AdminPageHeader
-        title="Dashboard editorial"
-        description="Visão operacional inicial do fluxo de notícias. Números desta tela são demonstrativos nesta etapa."
+        title={`Olá, ${firstName}.`}
+        description="O que você quer fazer agora?"
         actions={
           <Link href="/admin/noticias/nova" className="no-underline">
-            <Button size="md">Nova notícia</Button>
+            <Button size="md">+ Criar nova notícia</Button>
           </Link>
         }
       />
 
-      <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4" aria-label="Resumo de status">
+      <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3" aria-label="Resumo de status">
         <article className="surface-card space-y-2 p-4">
           <AdminStatusBadge status="DRAFT" />
           <p className="text-h2">{draftCount}</p>
-          <p className="text-body-sm text-text-muted">Itens em rascunho</p>
+          <p className="text-body-sm text-text-muted">Rascunhos para continuar</p>
         </article>
         <article className="surface-card space-y-2 p-4">
           <AdminStatusBadge status="IN_REVIEW" />
           <p className="text-h2">{reviewCount}</p>
-          <p className="text-body-sm text-text-muted">Itens aguardando revisão</p>
+          <p className="text-body-sm text-text-muted">Aguardando revisão</p>
         </article>
         <article className="surface-card space-y-2 p-4">
           <AdminStatusBadge status="PUBLISHED" />
           <p className="text-h2">{publishedCount}</p>
-          <p className="text-body-sm text-text-muted">Itens publicados</p>
-        </article>
-        <article className="surface-card space-y-2 p-4">
-          <AdminStatusBadge status="ARCHIVED" />
-          <p className="text-h2">{archivedCount}</p>
-          <p className="text-body-sm text-text-muted">Itens arquivados</p>
+          <p className="text-body-sm text-text-muted">Publicadas recentemente</p>
         </article>
       </section>
 
       <section className="surface-card p-4 md:p-5" aria-labelledby="admin-recentes-title">
-        <h2 id="admin-recentes-title" className="text-h3">
-          Conteúdos recentes
-        </h2>
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <h2 id="admin-recentes-title" className="text-h3">
+            Rascunhos e itens recentes
+          </h2>
+          <Link href="/admin/noticias" className="text-body-sm font-semibold">
+            Ver todas
+          </Link>
+        </div>
         <Divider className="my-3" />
-        <ul className="space-y-3">
-          {recent.items.map((item) => (
-            <li key={item.id} className="rounded-sm border border-border bg-surface-secondary p-3">
-              <div className="flex flex-wrap items-center gap-2">
-                <AdminStatusBadge status={item.status} />
-                <p className="text-caption text-text-muted">Atualizada em {formatEditorialDateTimeLabel(item.updatedAtISO)}</p>
-              </div>
-              <p className="mt-1 text-body font-semibold">{item.title}</p>
-              <p className="text-body-sm text-text-muted">
-                {item.category} • {item.municipality} • {item.author}
-              </p>
-            </li>
-          ))}
-        </ul>
+        {recent.items.length === 0 ? (
+          <p className="rounded-md border border-border bg-surface-secondary px-3 py-2 text-body-sm text-text-muted">
+            Nenhuma notícia recente. Crie a primeira matéria para iniciar o fluxo editorial.
+          </p>
+        ) : (
+          <ul className="space-y-3">
+            {recent.items.map((item) => (
+              <li key={item.id} className="rounded-sm border border-border bg-surface-secondary p-3">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <AdminStatusBadge status={item.status} />
+                  <p className="text-caption text-text-muted">Atualizada em {formatEditorialDateTimeLabel(item.updatedAtISO)}</p>
+                </div>
+                <p className="mt-1 text-body font-semibold">{item.title}</p>
+                <p className="text-body-sm text-text-muted">
+                  {item.category} • {item.municipality} • {item.author}
+                </p>
+              </li>
+            ))}
+          </ul>
+        )}
       </section>
     </div>
   );

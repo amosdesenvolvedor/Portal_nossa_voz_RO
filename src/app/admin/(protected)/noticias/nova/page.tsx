@@ -13,7 +13,7 @@ export default async function AdminCreateNewsPage() {
     <div className="space-y-6">
       <AdminPageHeader
         title="Nova notícia"
-        description="Editor inicial por blocos tipados com ações editoriais e assistência por IA controlada."
+        description="Escreva com foco no conteúdo e use a Assistência Editorial IA como copiloto quando precisar."
       />
 
       <AdminNewsEditorForm

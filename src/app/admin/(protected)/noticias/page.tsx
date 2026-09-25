@@ -41,131 +41,151 @@ export default async function AdminNewsPage({ searchParams }: AdminNewsPageProps
     }, actor),
   ]);
 
+  const currentParams = new URLSearchParams();
+  if (query) {
+    currentParams.set("q", query);
+  }
+  if (selectedMunicipality !== "all") {
+    currentParams.set("municipio", selectedMunicipality);
+  }
+  if (selectedAuthor !== "all") {
+    currentParams.set("autor", selectedAuthor);
+  }
+
+  function hrefForStatus(value: "all" | NewsStatus) {
+    const next = new URLSearchParams(currentParams);
+    if (value === "all") {
+      next.delete("status");
+    } else {
+      next.set("status", value);
+    }
+    const suffix = next.toString();
+    return suffix ? `/admin/noticias?${suffix}` : "/admin/noticias";
+  }
+
   return (
     <div className="space-y-6">
       <AdminPageHeader
         title="Notícias"
-        description="Listagem administrativa inicial com filtros visuais e estrutura preparada para persistência real."
+        description="Busque, filtre e abra rapidamente cada matéria para continuar a edição."
         actions={
           <Link href="/admin/noticias/nova" className="no-underline">
-            <Button size="md">Nova notícia</Button>
+            <Button size="md">+ Nova notícia</Button>
           </Link>
         }
       />
 
       <section className="surface-card space-y-4 p-4" aria-label="Filtros de notícias">
-        <form className="grid gap-3 md:grid-cols-4">
+        <form className="grid gap-3 md:grid-cols-[minmax(0,1fr)_auto]" role="search" aria-label="Buscar notícias">
           <label className="space-y-1.5 text-body-sm font-semibold">
-            Status
-            <select name="status" defaultValue={selectedStatus} className="h-11 w-full rounded-md border border-border bg-surface px-3">
-              {statusFilterOptions.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-          </label>
-
-          <label className="space-y-1.5 text-body-sm font-semibold">
-            Município
-            <select
-              name="municipio"
-              defaultValue={selectedMunicipality}
-              className="h-11 w-full rounded-md border border-border bg-surface px-3"
-            >
-              <option value="all">Todos</option>
-              {referenceData.municipalities.map((item) => (
-                <option key={item.id} value={item.slug}>
-                  {item.name}
-                </option>
-              ))}
-            </select>
-          </label>
-
-          <label className="space-y-1.5 text-body-sm font-semibold">
-            Autor
-            <select name="autor" defaultValue={selectedAuthor} className="h-11 w-full rounded-md border border-border bg-surface px-3">
-              <option value="all">Todos</option>
-              {referenceData.authors.map((item) => (
-                <option key={item.id} value={item.id}>
-                  {item.name}
-                </option>
-              ))}
-            </select>
-          </label>
-
-          <div className="space-y-1.5 text-body-sm font-semibold">
-            <span>Busca por título</span>
+            Buscar notícias
             <input
               name="q"
               defaultValue={query}
-              placeholder="Digite parte do título"
+              placeholder="Título, assunto ou palavra-chave"
               className="h-11 w-full rounded-md border border-border bg-surface px-3"
             />
-          </div>
-
-          <Button type="submit" className="md:col-span-4 md:justify-self-start">
-            Aplicar filtros
+          </label>
+          <Button type="submit" className="md:self-end">
+            Buscar
           </Button>
-        </form>
-      </section>
 
-      <section className="surface-card overflow-hidden" aria-label="Lista de notícias">
-        <div className="hidden overflow-x-auto lg:block">
-          <table className="min-w-full divide-y divide-border text-left text-body-sm">
-            <thead className="bg-surface-secondary text-caption uppercase tracking-[0.08em] text-text-muted">
-              <tr>
-                <th className="px-4 py-3">Título</th>
-                <th className="px-4 py-3">Status</th>
-                <th className="px-4 py-3">Categoria</th>
-                <th className="px-4 py-3">Autor</th>
-                <th className="px-4 py-3">Município</th>
-                <th className="px-4 py-3">Atualização</th>
-                <th className="px-4 py-3">Ações</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border">
-              {filteredNews.items.map((item) => (
-                <tr key={item.id}>
-                  <td className="px-4 py-3">
-                    <p className="font-semibold">{item.title}</p>
-                    <p className="text-caption text-text-muted">/{item.slug}</p>
-                  </td>
-                  <td className="px-4 py-3">
-                    <AdminStatusBadge status={item.status} />
-                  </td>
-                  <td className="px-4 py-3">{item.category}</td>
-                  <td className="px-4 py-3">{item.author}</td>
-                  <td className="px-4 py-3">{item.municipality}</td>
-                  <td className="px-4 py-3">{formatEditorialDateTimeLabel(item.updatedAtISO)}</td>
-                  <td className="px-4 py-3">
-                    <Link href={`/admin/noticias/${item.id}`} className="text-body-sm font-semibold">
-                      Abrir
-                    </Link>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          <input type="hidden" name="status" value={selectedStatus} />
+          <input type="hidden" name="municipio" value={selectedMunicipality} />
+          <input type="hidden" name="autor" value={selectedAuthor} />
+        </form>
+
+        <div className="flex flex-wrap gap-2" aria-label="Filtros por status">
+          {statusFilterOptions.map((option) => {
+            const isActive = selectedStatus === option.value;
+
+            return (
+              <Link
+                key={option.value}
+                href={hrefForStatus(option.value)}
+                className={`inline-flex min-h-11 items-center rounded-md border px-3 text-body-sm font-semibold no-underline transition-colors ${
+                  isActive
+                    ? "border-brand-primary bg-brand-primary text-text-inverse"
+                    : "border-border bg-surface text-text hover:bg-surface-secondary"
+                }`}
+              >
+                {option.label}
+              </Link>
+            );
+          })}
         </div>
 
-        <ul className="grid gap-3 p-3 lg:hidden">
-              {filteredNews.items.map((item) => (
-            <li key={item.id} className="rounded-md border border-border bg-surface p-3">
-              <div className="flex flex-wrap items-center gap-2">
-                <AdminStatusBadge status={item.status} />
-                <span className="text-caption text-text-muted">{formatEditorialDateTimeLabel(item.updatedAtISO)}</span>
-              </div>
-              <p className="mt-2 text-body font-semibold">{item.title}</p>
-              <p className="mt-1 text-body-sm text-text-muted">
-                {item.category} • {item.author} • {item.municipality}
-              </p>
-              <Link href={`/admin/noticias/${item.id}`} className="mt-2 inline-flex min-h-11 items-center text-body-sm font-semibold">
-                Abrir matéria
-              </Link>
-            </li>
-          ))}
-        </ul>
+        <details className="rounded-md border border-border bg-surface-secondary px-3 py-2">
+          <summary className="cursor-pointer text-body-sm font-semibold">Filtros</summary>
+          <form className="mt-3 grid gap-3 md:grid-cols-2">
+            <label className="space-y-1.5 text-body-sm font-semibold">
+              Município
+              <select
+                name="municipio"
+                defaultValue={selectedMunicipality}
+                className="h-11 w-full rounded-md border border-border bg-surface px-3"
+              >
+                <option value="all">Todos</option>
+                {referenceData.municipalities.map((item) => (
+                  <option key={item.id} value={item.slug}>
+                    {item.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+
+            <label className="space-y-1.5 text-body-sm font-semibold">
+              Autor
+              <select name="autor" defaultValue={selectedAuthor} className="h-11 w-full rounded-md border border-border bg-surface px-3">
+                <option value="all">Todos</option>
+                {referenceData.authors.map((item) => (
+                  <option key={item.id} value={item.id}>
+                    {item.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+
+            <input type="hidden" name="q" value={query} />
+            <input type="hidden" name="status" value={selectedStatus} />
+
+            <Button type="submit" className="md:col-span-2 md:justify-self-start">
+              Aplicar filtros
+            </Button>
+          </form>
+        </details>
+      </section>
+
+      <section className="surface-card p-3 md:p-4" aria-label="Lista de notícias">
+        {filteredNews.items.length === 0 ? (
+          <div className="rounded-md border border-border bg-surface-secondary px-4 py-5">
+            <p className="text-body font-semibold">Nenhuma notícia encontrada.</p>
+            <p className="mt-1 text-body-sm text-text-muted">Ajuste os filtros ou crie uma nova notícia.</p>
+          </div>
+        ) : (
+          <ul className="space-y-2">
+            {filteredNews.items.map((item) => (
+              <li key={item.id}>
+                <Link
+                  href={`/admin/noticias/${item.id}`}
+                  className="block rounded-md border border-border bg-surface px-3 py-3 no-underline transition-colors hover:bg-surface-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-secondary"
+                >
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <p className="text-body font-semibold text-text">{item.title}</p>
+                    <AdminStatusBadge status={item.status} />
+                  </div>
+                  <p className="mt-1 text-body-sm text-text-muted">
+                    {item.category} • {item.municipality}
+                  </p>
+                  <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-caption text-text-muted">
+                    <span>Autor: {item.author}</span>
+                    <span>Atualizada em {formatEditorialDateTimeLabel(item.updatedAtISO)}</span>
+                  </div>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        )}
       </section>
     </div>
   );

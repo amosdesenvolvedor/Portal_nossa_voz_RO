@@ -50,16 +50,24 @@ export function AdminMobileNav({ items }: AdminMobileNavProps) {
 
       <aside
         id="admin-mobile-nav"
-        className={`fixed inset-y-0 right-0 z-50 w-[min(22rem,100vw)] bg-surface p-4 shadow-elevated transition-transform ${
+        className={`fixed inset-y-0 right-0 z-50 w-[min(22rem,100vw)] overflow-y-auto border-l border-border bg-surface p-4 shadow-elevated transition-transform ${
           open ? "translate-x-0" : "translate-x-full"
         }`}
       >
         <div className="mb-4 flex items-center justify-between">
-          <p className="text-body font-semibold">Menu</p>
+          <div>
+            <p className="text-caption uppercase tracking-[0.08em] text-text-muted">Nossa Voz RO</p>
+            <p className="text-body font-semibold">Área Editorial</p>
+          </div>
           <Button variant="ghost" size="icon" aria-label="Fechar menu" onClick={() => setOpen(false)}>
             <CloseIcon />
           </Button>
         </div>
+
+        <p className="mb-3 rounded-md border border-border bg-surface-secondary px-3 py-2 text-body-sm text-text-muted">
+          Acesso rápido: <strong className="text-text">+ Nova notícia</strong>
+        </p>
+
         <AdminSidebarNav items={items} onNavigate={() => setOpen(false)} />
       </aside>
     </div>

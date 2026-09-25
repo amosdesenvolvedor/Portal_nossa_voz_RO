@@ -18,7 +18,6 @@ export function AdminPageHeader({ title, description, actions, className }: Admi
         </div>
         {actions ? <div className="flex flex-wrap items-center gap-2">{actions}</div> : null}
       </div>
-      <p className="text-caption text-text-muted">Dados desta etapa: demonstração arquitetural para Prompt 09.</p>
     </header>
   );
 }

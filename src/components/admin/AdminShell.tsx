@@ -15,13 +15,19 @@ type AdminShellProps = {
   children: ReactNode;
 };
 
+const ROLE_LABELS: Record<AdminShellProps["user"]["role"], string> = {
+  ADMIN: "Administrador",
+  EDITOR: "Editor",
+  AUTHOR: "Autor",
+};
+
 export function AdminShell({ user, children }: AdminShellProps) {
   return (
     <div className="min-h-screen bg-canvas text-text">
       <div className="lg:grid lg:min-h-screen lg:grid-cols-[260px_minmax(0,1fr)]">
         <aside className="hidden border-r border-border bg-surface p-4 lg:block">
           <BrandLogo href="/admin" />
-          <p className="mt-4 text-caption text-text-muted">Painel editorial operacional</p>
+          <p className="mt-4 text-caption text-text-muted">Navegação editorial</p>
           <Divider className="my-4" />
           <AdminSidebarNav items={ADMIN_NAVIGATION} />
         </aside>
@@ -31,13 +37,13 @@ export function AdminShell({ user, children }: AdminShellProps) {
             <div className="flex items-center justify-between gap-3 px-4 py-3 md:px-6">
               <div className="min-w-0">
                 <p className="text-caption uppercase tracking-[0.08em] text-text-muted">Nossa Voz RO</p>
-                <h1 className="truncate text-body font-semibold">Administração editorial</h1>
+                <h1 className="truncate text-body font-semibold">Área Editorial</h1>
               </div>
 
               <div className="flex items-center gap-2">
                 <div className="hidden text-right md:block">
                   <p className="truncate text-body-sm font-semibold">{user.name || user.email}</p>
-                  <p className="text-caption text-text-muted">Papel: {user.role}</p>
+                  <p className="text-caption text-text-muted">{ROLE_LABELS[user.role]}</p>
                 </div>
                 <AdminSignOutButton />
                 <AdminMobileNav items={ADMIN_NAVIGATION} />
