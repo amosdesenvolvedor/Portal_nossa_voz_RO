@@ -49,12 +49,38 @@ const quoteBlockSchema = z.object({
   citation: z.string().trim().max(200).optional(),
 });
 
+const imageBlockSchema = z.object({
+  type: z.literal("image"),
+  mediaAssetId: z.string().trim().min(1).max(128),
+  altText: z.string().trim().max(220).optional(),
+  caption: z.string().trim().max(220).optional(),
+  credit: z.string().trim().max(160).optional(),
+});
+
 export const editorialContentBlockSchema = z.union([
   paragraphBlockSchema,
   headingBlockSchema,
   listBlockSchema,
   quoteBlockSchema,
+  imageBlockSchema,
 ]);
+
+const newsMediaSchema = z.object({
+  assetIds: z.array(z.string().trim().min(1).max(128)).max(20).optional(),
+  heroAssetId: z.string().trim().min(1).max(128).optional(),
+  metadata: z
+    .array(
+      z.object({
+        id: z.string().trim().min(1).max(128),
+        altText: z.string().trim().max(220).optional(),
+        caption: z.string().trim().max(220).optional(),
+        credit: z.string().trim().max(160).optional(),
+        isSensitive: z.boolean().optional(),
+      }),
+    )
+    .max(20)
+    .optional(),
+});
 
 export const editorialContentBlocksSchema = z.array(editorialContentBlockSchema).min(1).max(200);
 
@@ -79,6 +105,7 @@ export const newsMutationSchema = z.object({
   heroImageCredit: z.string().trim().max(120).optional().or(z.literal("")),
   tags: z.array(tagLabelSchema).max(20),
   blocks: editorialContentBlocksSchema,
+  media: newsMediaSchema.optional(),
   expectedUpdatedAt: z.string().datetime().optional(),
 });
 

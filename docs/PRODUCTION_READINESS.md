@@ -30,6 +30,13 @@
 - [ ] robots produção
 - [ ] OG public fetch
 - [ ] revisão de logs pós-deploy
+- [ ] provider de storage de mídia em produção (S3/R2/GCS ou equivalente)
+- [ ] credenciais de storage em segredo de produção
+- [ ] permissões de escrita/leitura validadas para mídia
+- [ ] política de lifecycle/retention para mídia editorial
+- [ ] estratégia de backup/replicação para ativos de mídia
+- [ ] dependência nativa de processamento de imagem (`sharp`) validada na VM/container
+- [ ] monitoramento de erro para upload/processamento de mídia
 
 ## Pendência crítica de backup
 
@@ -42,6 +49,12 @@
 - Gestão de segredos em ambiente de produção (fora de `.env` local).
 - Revisão final de headers/CSP em domínio real com proxy reverso.
 - Validação de políticas de retenção de logs e monitoramento.
+
+## Prompt 11.2 - observações de mídia editorial
+
+- O banco não armazena binário de imagem; apenas metadados e chaves de storage.
+- Produção exige storage externo durável para mídia; diretório local é apenas estratégia de desenvolvimento.
+- Fluxo de blur depende de persistência de variações públicas e preservação do original privado.
 
 ## Observações de rollout
 

@@ -154,6 +154,23 @@ Garantias editoriais mantidas:
 - autoridade editorial continua humana
 - IA sugere, humano revisa, humano aplica, humano salva, humano autorizado publica
 
+## Assistencia visual IA (Prompt 11.2)
+
+Extensao implementada para fluxo de imagem editorial:
+- endpoint interno protegido em `POST /api/admin/media/generate`
+- estado de disponibilidade exposto no admin para nao prometer capacidade inexistente
+- uso de imagem gerada depende de acao humana explicita no editor
+
+Politica aplicada:
+- nenhuma imagem gerada por IA e inserida automaticamente em noticia
+- nenhuma imagem gerada por IA publica noticia automaticamente
+- nenhuma transicao de workflow e disparada por sugestao visual
+
+Comportamento sem provider multimodal configurado:
+- retorno controlado com HTTP `503`
+- payload com erro sem efeito colateral editorial
+- proibido fallback com imagem fake/local para simular geracao real
+
 ## Validacao tecnica realizada
 
 Teste minimo real executado no fluxo administrativo autenticado:

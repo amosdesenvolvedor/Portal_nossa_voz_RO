@@ -132,6 +132,22 @@ export default async function NewsArticlePage({ params }: NewsArticlePageProps) 
     imageUrl: article.heroImageUrl,
   });
 
+  const mediaById = Object.fromEntries(
+    article.mediaLinks.map((link) => [
+      link.mediaAsset.id,
+      {
+        publicUrl: `/media/${link.mediaAsset.id}`,
+        altText: link.mediaAsset.altText ?? undefined,
+        caption: link.mediaAsset.caption ?? undefined,
+        credit: link.mediaAsset.credit ?? undefined,
+        origin: link.mediaAsset.origin,
+      },
+    ]),
+  );
+
+  const heroAiLabel = article.heroMediaAsset?.origin === "AI_GENERATED" ? "Ilustração gerada por inteligência artificial." : "";
+  const heroCaption = [article.heroImageCaption ?? undefined, heroAiLabel].filter(Boolean).join(" ") || undefined;
+
   return (
     <main className="bg-canvas py-6 md:py-8">
       <Container className="space-y-8 md:space-y-10">
@@ -187,7 +203,7 @@ export default async function NewsArticlePage({ params }: NewsArticlePageProps) 
 
               <div className="reading-column">
                 <EditorialImageCaption
-                  caption={article.heroImageCaption ?? undefined}
+                  caption={heroCaption}
                   credit={article.heroImageCredit ?? undefined}
                 />
               </div>
@@ -203,6 +219,7 @@ export default async function NewsArticlePage({ params }: NewsArticlePageProps) 
               blocks={blocks}
               middleContentAfterBlock={4}
               middleContent={<AdSlot position="ARTICLE_MIDDLE" />}
+              mediaById={mediaById}
             />
 
             <section className="space-y-3" aria-labelledby="article-tags-title">

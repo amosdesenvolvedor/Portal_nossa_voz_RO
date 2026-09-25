@@ -9,6 +9,7 @@ import {
   tagLabelSchema,
   workflowMutationSchema,
 } from "@/lib/editorial/validation";
+import { syncNewsMedia, type NewsMediaInput } from "@/lib/media/editorial-media";
 
 export type ServiceActor = {
   id: string;
@@ -44,6 +45,7 @@ type NewsMutationInput = {
   heroImageCaption: string | null;
   heroImageCredit: string | null;
   isAiAssisted: boolean;
+  media?: NewsMediaInput;
 };
 
 function toPlainTextFromBlocks(blocks: Prisma.JsonValue): string {
@@ -307,6 +309,41 @@ export async function getAdminNewsById(id: string, actor: ServiceActor) {
       updatedBy: { select: { id: true, name: true } },
       reviewedBy: { select: { id: true, name: true } },
       publishedBy: { select: { id: true, name: true } },
+      heroMediaAsset: {
+        select: {
+          id: true,
+          origin: true,
+          mimeType: true,
+          width: true,
+          height: true,
+          fileSize: true,
+          altText: true,
+          caption: true,
+          credit: true,
+          isSensitive: true,
+          isBlurred: true,
+        },
+      },
+      mediaLinks: {
+        orderBy: { sortOrder: "asc" },
+        include: {
+          mediaAsset: {
+            select: {
+              id: true,
+              origin: true,
+              mimeType: true,
+              width: true,
+              height: true,
+              fileSize: true,
+              altText: true,
+              caption: true,
+              credit: true,
+              isSensitive: true,
+              isBlurred: true,
+            },
+          },
+        },
+      },
       auditEvents: {
         orderBy: { createdAt: "desc" },
         include: {
@@ -329,6 +366,7 @@ function buildNewsMutationData(parsed: ReturnType<typeof newsMutationSchema.pars
     heroImageCaption: parsed.heroImageCaption || null,
     heroImageCredit: parsed.heroImageCredit || null,
     isAiAssisted: false,
+    media: parsed.media,
   };
 }
 
@@ -339,7 +377,7 @@ export async function createDraftNews(rawInput: unknown, actor: ServiceActor) {
     throw new Error("FORBIDDEN");
   }
 
-  return prisma.$transaction(async (tx) => {
+  const created = await prisma.$transaction(async (tx) => {
     const [category, municipality, tags] = await Promise.all([
       tx.category.findUnique({ where: { slug: parsed.categorySlug }, select: { id: true } }),
       tx.municipality.findUnique({ where: { slug: parsed.municipalitySlug }, select: { id: true } }),
@@ -361,9 +399,20 @@ export async function createDraftNews(rawInput: unknown, actor: ServiceActor) {
       }
     }
 
+    const mutationData = buildNewsMutationData(parsed);
+
     const news = await tx.news.create({
       data: {
-        ...buildNewsMutationData(parsed),
+        title: mutationData.title,
+        slug: mutationData.slug,
+        summary: mutationData.summary,
+        contentBlocks: mutationData.contentBlocks,
+        content: mutationData.content,
+        heroImageUrl: mutationData.heroImageUrl,
+        heroImageAlt: mutationData.heroImageAlt,
+        heroImageCaption: mutationData.heroImageCaption,
+        heroImageCredit: mutationData.heroImageCredit,
+        isAiAssisted: mutationData.isAiAssisted,
         status: "DRAFT",
         createdBy: { connect: { id: actor.id } },
         updatedBy: { connect: { id: actor.id } },
@@ -388,14 +437,24 @@ export async function createDraftNews(rawInput: unknown, actor: ServiceActor) {
       toStatus: "DRAFT",
     });
 
-    return news;
+    return {
+      news,
+      media: mutationData.media,
+    };
   });
+
+  if (created.media) {
+    await syncNewsMedia(created.news.id, actor, created.media);
+  }
+
+  return created.news;
 }
 
 export async function updateNewsDraft(newsId: string, rawInput: unknown, actor: ServiceActor) {
   const parsed = newsMutationSchema.parse(rawInput);
+  const builtMutationData = buildNewsMutationData(parsed);
 
-  return prisma.$transaction(async (tx) => {
+  const updated = await prisma.$transaction(async (tx) => {
     const current = await tx.news.findUnique({
       where: { id: newsId },
       select: {
@@ -448,7 +507,16 @@ export async function updateNewsDraft(newsId: string, rawInput: unknown, actor: 
 
     const canReassignAuthor = isPrivilegedEditorialRole(actor.role);
     const mutationData: Prisma.NewsUpdateInput = {
-      ...buildNewsMutationData(parsed),
+      title: builtMutationData.title,
+      slug: builtMutationData.slug,
+      summary: builtMutationData.summary,
+      contentBlocks: builtMutationData.contentBlocks,
+      content: builtMutationData.content,
+      heroImageUrl: builtMutationData.heroImageUrl,
+      heroImageAlt: builtMutationData.heroImageAlt,
+      heroImageCaption: builtMutationData.heroImageCaption,
+      heroImageCredit: builtMutationData.heroImageCredit,
+      isAiAssisted: builtMutationData.isAiAssisted,
       category: { connect: { id: category.id } },
       municipality: { connect: { id: municipality.id } },
       updatedBy: { connect: { id: actor.id } },
@@ -484,6 +552,12 @@ export async function updateNewsDraft(newsId: string, rawInput: unknown, actor: 
 
     return news;
   });
+
+  if (builtMutationData.media) {
+    await syncNewsMedia(newsId, actor, builtMutationData.media);
+  }
+
+  return updated;
 }
 
 export async function transitionNewsWorkflow(newsId: string, rawInput: unknown, actor: ServiceActor) {
@@ -785,6 +859,11 @@ export async function getPublishedArticleByRoute(categorySlug: string, articleSl
       author: true,
       createdBy: true,
       tags: true,
+      heroMediaAsset: true,
+      mediaLinks: {
+        orderBy: { sortOrder: "asc" },
+        include: { mediaAsset: true },
+      },
     },
   });
 }

@@ -33,8 +33,17 @@ export type EditorialQuoteBlock = {
   citation?: string;
 };
 
+export type EditorialImageBlock = {
+  type: "image";
+  mediaAssetId: string;
+  altText?: string;
+  caption?: string;
+  credit?: string;
+};
+
 export type EditorialContentBlock =
   | EditorialParagraphBlock
   | EditorialHeadingBlock
   | EditorialListBlock
-  | EditorialQuoteBlock;
+  | EditorialQuoteBlock
+  | EditorialImageBlock;

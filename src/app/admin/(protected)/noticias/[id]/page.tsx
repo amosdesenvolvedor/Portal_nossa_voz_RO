@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { AdminNewsEditorForm } from "@/components/admin/AdminNewsEditorForm";
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 import { getEditorialAIStatus } from "@/lib/ai/editorial";
+import { getAiImageProviderStatus } from "@/lib/ai/images/provider";
 import { requireAuthSession } from "@/lib/auth/session";
 import { getAdminNewsById, listAdminReferenceData } from "@/lib/services/editorial-service";
 
@@ -22,7 +23,11 @@ export default async function AdminNewsDetailsPage({ params }: AdminNewsDetailsP
     notFound();
   }
 
-  const [referenceData, aiStatus] = await Promise.all([listAdminReferenceData(), getEditorialAIStatus()]);
+  const [referenceData, aiStatus, aiImageStatus] = await Promise.all([
+    listAdminReferenceData(),
+    getEditorialAIStatus(),
+    getAiImageProviderStatus(),
+  ]);
 
   return (
     <div className="space-y-6">
@@ -37,6 +42,7 @@ export default async function AdminNewsDetailsPage({ params }: AdminNewsDetailsP
         authors={referenceData.authors.map((item) => ({ label: item.name, value: item.id }))}
         userRole={session.user.role}
         aiConfigured={aiStatus.configured}
+        aiImageAvailable={aiImageStatus.available}
         initialDraft={{
           id: entry.id,
           status: entry.status,
@@ -51,6 +57,22 @@ export default async function AdminNewsDetailsPage({ params }: AdminNewsDetailsP
           tags: entry.tags.map((tag) => tag.name),
           blocks: Array.isArray(entry.contentBlocks) ? (entry.contentBlocks as never) : [],
           expectedUpdatedAt: entry.updatedAt.toISOString(),
+          heroMediaAssetId: entry.heroMediaAssetId,
+          mediaAssets: entry.mediaLinks.map((link) => ({
+            id: link.mediaAsset.id,
+            origin: link.mediaAsset.origin,
+            mimeType: link.mediaAsset.mimeType,
+            width: link.mediaAsset.width,
+            height: link.mediaAsset.height,
+            fileSize: link.mediaAsset.fileSize,
+            altText: link.mediaAsset.altText,
+            caption: link.mediaAsset.caption,
+            credit: link.mediaAsset.credit,
+            isSensitive: link.mediaAsset.isSensitive,
+            isBlurred: link.mediaAsset.isBlurred,
+            publicUrl: `/media/${link.mediaAsset.id}`,
+            sortOrder: link.sortOrder,
+          })),
         }}
       />
     </div>

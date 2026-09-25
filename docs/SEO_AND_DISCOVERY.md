@@ -125,8 +125,9 @@ Configuração central:
 - `src/lib/seo/metadata.ts`
 
 Estratégia de imagem:
-1. matéria usa `heroImageUrl` quando disponível
-2. fallback usa imagem social padrão do portal
+1. matéria usa `heroMediaAsset` (`/media/:id`) quando disponível
+2. fallback secundário usa `heroImageUrl` legado quando existente
+3. fallback final usa imagem social padrão do portal
 
 Asset social padrão criado:
 - `public/brand/nossa-voz-ro-social.svg`
@@ -159,6 +160,11 @@ Campos preenchidos com dados reais quando disponíveis:
 - `author` (`Person`)
 - `publisher` (`Organization`)
 - `image`
+
+Prioridade para `image` da matéria:
+1. `heroMediaAsset` público (`/media/:id`)
+2. `heroImageUrl` legado
+3. imagem social padrão do portal
 
 Serialização segura:
 - `JSON.stringify`

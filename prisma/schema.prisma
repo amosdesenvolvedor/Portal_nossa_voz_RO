@@ -29,6 +29,11 @@ enum EditorialAuditAction {
   ARCHIVED
 }
 
+enum MediaOrigin {
+  UPLOADED
+  AI_GENERATED
+}
+
 model User {
   id        String   @id @default(cuid())
   name      String
@@ -48,6 +53,8 @@ model User {
   publishedNews News[] @relation("PublishedBy")
   assignedAuthoredNews News[] @relation("AssignedAuthor")
   editorialAuditEvents EditorialAuditEvent[]
+  createdMediaAssets MediaAsset[]
+  linkedNewsMedia NewsMediaAsset[]
 }
 
 model Region {
@@ -146,10 +153,60 @@ model News {
 
   auditEvents    EditorialAuditEvent[]
 
+  heroMediaAssetId String?
+  heroMediaAsset MediaAsset? @relation("HeroMedia", fields: [heroMediaAssetId], references: [id], onDelete: SetNull)
+  mediaLinks NewsMediaAsset[]
+
   @@index([status, publishedAt])
   @@index([categoryId, status, publishedAt])
   @@index([municipalityId, status, publishedAt])
   @@index([authorId, status, publishedAt])
+  @@index([heroMediaAssetId])
+}
+
+model MediaAsset {
+  id               String    @id @default(cuid())
+  origin           MediaOrigin
+  storageKeyOriginal String  @unique
+  storageKeyPublic String    @unique
+  mimeType         String
+  width            Int
+  height           Int
+  fileSize         Int
+  altText          String?
+  caption          String?
+  credit           String?
+  aiPrompt         String?
+  isSensitive      Boolean   @default(false)
+  isBlurred        Boolean   @default(false)
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  createdById      String
+  createdBy        User      @relation(fields: [createdById], references: [id], onDelete: Restrict)
+
+  heroOfNews       News[]    @relation("HeroMedia")
+  newsLinks        NewsMediaAsset[]
+
+  @@index([origin, createdAt])
+  @@index([createdById, createdAt])
+}
+
+model NewsMediaAsset {
+  id          String   @id @default(cuid())
+  newsId      String
+  mediaAssetId String
+  addedById   String
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+
+  news        News      @relation(fields: [newsId], references: [id], onDelete: Cascade)
+  mediaAsset  MediaAsset @relation(fields: [mediaAssetId], references: [id], onDelete: Restrict)
+  addedBy     User      @relation(fields: [addedById], references: [id], onDelete: Restrict)
+
+  @@unique([newsId, mediaAssetId])
+  @@index([newsId, sortOrder])
+  @@index([mediaAssetId])
 }
 
 model EditorialAuditEvent {

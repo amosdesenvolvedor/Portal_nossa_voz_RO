@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import Image from "next/image";
+import { useEffect, useMemo, useState } from "react";
 import { AdminStatusBadge } from "@/components/admin/AdminStatusBadge";
 import { Button } from "@/components/ui/Button";
 import type { EditorialContentBlock } from "@/lib/editorial/article-blocks";
@@ -20,6 +21,7 @@ type AdminNewsEditorFormProps = {
   authors: SelectOption[];
   userRole: UserRole;
   aiConfigured: boolean;
+  aiImageAvailable: boolean;
   initialDraft?: {
     id: string;
     status: NewsStatus;
@@ -34,7 +36,39 @@ type AdminNewsEditorFormProps = {
     tags: string[];
     blocks: EditorialContentBlock[];
     expectedUpdatedAt?: string;
+    mediaAssets?: Array<{
+      id: string;
+      origin: "UPLOADED" | "AI_GENERATED";
+      mimeType: string;
+      width: number;
+      height: number;
+      fileSize: number;
+      altText: string | null;
+      caption: string | null;
+      credit: string | null;
+      isSensitive: boolean;
+      isBlurred: boolean;
+      publicUrl: string;
+      sortOrder: number;
+    }>;
+    heroMediaAssetId?: string | null;
   };
+};
+
+type EditorMediaAsset = {
+  id: string;
+  origin: "UPLOADED" | "AI_GENERATED";
+  mimeType: string;
+  width: number;
+  height: number;
+  fileSize: number;
+  altText: string;
+  caption: string;
+  credit: string;
+  isSensitive: boolean;
+  isBlurred: boolean;
+  publicUrl: string;
+  sortOrder: number;
 };
 
 type AssistantApplyTarget = "title" | "summary" | "body" | "tags";
@@ -70,7 +104,7 @@ function normalizeBlocks(rawBlocks: unknown): EditorialContentBlock[] {
     return [fromTextToParagraph("Escreva o primeiro parágrafo da matéria.")];
   }
 
-  const validTypes = new Set(["paragraph", "heading", "list", "quote"]);
+  const validTypes = new Set(["paragraph", "heading", "list", "quote", "image"]);
   const sanitized = rawBlocks.filter((block) => {
     if (!block || typeof block !== "object") {
       return false;
@@ -141,6 +175,10 @@ function toPlainTextFromBlocks(blocks: EditorialContentBlock[]): string {
         return block.items.map((item) => item.map((node) => node.text).join(" ")).join("\n");
       }
 
+      if (block.type === "image") {
+        return "";
+      }
+
       return block.content.map((node) => node.text).join(" ");
     })
     .join("\n\n")
@@ -165,6 +203,10 @@ function toTextareaValue(block: EditorialContentBlock): string {
 
   if (block.type === "list") {
     return block.items.map((item) => item.map((node) => node.text).join(" ")).join("\n");
+  }
+
+  if (block.type === "image") {
+    return "";
   }
 
   return block.content.map((node) => node.text).join(" ");
@@ -196,6 +238,10 @@ function updateBlockText(block: EditorialContentBlock, value: string): Editorial
     };
   }
 
+  if (block.type === "image") {
+    return block;
+  }
+
   return {
     ...block,
     content: [{ type: "text", text: value }],
@@ -208,6 +254,7 @@ export function AdminNewsEditorForm({
   authors,
   userRole,
   aiConfigured,
+  aiImageAvailable,
   initialDraft,
 }: AdminNewsEditorFormProps) {
   const isEditing = !!initialDraft;
@@ -217,13 +264,25 @@ export function AdminNewsEditorForm({
   const [category, setCategory] = useState(initialDraft?.categorySlug || categories[0]?.value || "");
   const [municipality, setMunicipality] = useState(initialDraft?.municipalitySlug || municipalities[0]?.value || "");
   const [author, setAuthor] = useState(initialDraft?.authorId || authors[0]?.value || "");
-  const [imageCaption, setImageCaption] = useState(initialDraft?.heroImageCaption ?? "");
-  const [imageCredit, setImageCredit] = useState(initialDraft?.heroImageCredit ?? "");
   const [tagInput, setTagInput] = useState(initialDraft?.tags?.join(", ") || "");
   const [status, setStatus] = useState<NewsStatus>(initialDraft?.status ?? "DRAFT");
   const [draftId, setDraftId] = useState<string | null>(initialDraft?.id ?? null);
   const [expectedUpdatedAt, setExpectedUpdatedAt] = useState(initialDraft?.expectedUpdatedAt ?? "");
   const [blocks, setBlocks] = useState<EditorialContentBlock[]>(normalizeBlocks(initialDraft?.blocks));
+  const [mediaAssets, setMediaAssets] = useState<EditorMediaAsset[]>(
+    (initialDraft?.mediaAssets || []).map((asset) => ({
+      ...asset,
+      altText: asset.altText || "",
+      caption: asset.caption || "",
+      credit: asset.credit || "",
+    })),
+  );
+  const [heroMediaAssetId, setHeroMediaAssetId] = useState<string | null>(initialDraft?.heroMediaAssetId || null);
+  const [uploadPending, setUploadPending] = useState(false);
+  const [aiImagePrompt, setAiImagePrompt] = useState("");
+  const [aiImagePending, setAiImagePending] = useState(false);
+  const [aiImageProviderAvailable, setAiImageProviderAvailable] = useState(aiImageAvailable);
+  const [aiImageCandidate, setAiImageCandidate] = useState<EditorMediaAsset | null>(null);
 
   const [aiTask, setAiTask] = useState<EditorialAITask>("proofread");
   const [aiPrompt, setAiPrompt] = useState("");
@@ -246,10 +305,10 @@ export function AdminNewsEditorForm({
       category: initialDraft?.categorySlug || categories[0]?.value || "",
       municipality: initialDraft?.municipalitySlug || municipalities[0]?.value || "",
       author: initialDraft?.authorId || authors[0]?.value || "",
-      imageCaption: initialDraft?.heroImageCaption ?? "",
-      imageCredit: initialDraft?.heroImageCredit ?? "",
       tagInput: initialDraft?.tags?.join(", ") || "",
       blocks: normalizeBlocks(initialDraft?.blocks),
+      mediaAssets: initialDraft?.mediaAssets || [],
+      heroMediaAssetId: initialDraft?.heroMediaAssetId || null,
     }),
   );
 
@@ -265,14 +324,39 @@ export function AdminNewsEditorForm({
         category,
         municipality,
         author,
-        imageCaption,
-        imageCredit,
         tagInput,
         blocks,
+        mediaAssets,
+        heroMediaAssetId,
       }),
-    [title, slug, summary, category, municipality, author, imageCaption, imageCredit, tagInput, blocks],
+    [title, slug, summary, category, municipality, author, tagInput, blocks, mediaAssets, heroMediaAssetId],
   );
   const hasUnsavedChanges = currentSnapshot !== lastSavedSnapshot;
+
+  useEffect(() => {
+    let active = true;
+
+    async function loadVisualStatus() {
+      const response = await fetch("/api/admin/media/generate", {
+        method: "GET",
+        cache: "no-store",
+      }).catch(() => null);
+
+      if (!active || !response?.ok) {
+        return;
+      }
+
+      const data = (await response.json().catch(() => null)) as { available?: boolean } | null;
+      if (active && typeof data?.available === "boolean") {
+        setAiImageProviderAvailable(data.available);
+      }
+    }
+
+    void loadVisualStatus();
+    return () => {
+      active = false;
+    };
+  }, []);
 
   function handleGenerateSlug() {
     if (!title.trim()) {
@@ -327,6 +411,184 @@ export function AdminNewsEditorForm({
 
   function removeBlock(index: number) {
     setBlocks((current) => current.filter((_, idx) => idx !== index));
+  }
+
+  function addImageBlock(mediaAssetId: string) {
+    const asset = mediaAssets.find((entry) => entry.id === mediaAssetId);
+    if (!asset) {
+      return;
+    }
+
+    setBlocks((current) => [
+      ...current,
+      {
+        type: "image",
+        mediaAssetId: asset.id,
+        altText: asset.altText || undefined,
+        caption: asset.caption || undefined,
+        credit: asset.credit || undefined,
+      },
+    ]);
+  }
+
+  function removeMediaAsset(assetId: string) {
+    setMediaAssets((current) => current.filter((asset) => asset.id !== assetId));
+    if (heroMediaAssetId === assetId) {
+      setHeroMediaAssetId(null);
+    }
+
+    setBlocks((current) => current.filter((block) => block.type !== "image" || block.mediaAssetId !== assetId));
+  }
+
+  function updateMediaField(assetId: string, field: "altText" | "caption" | "credit", value: string) {
+    setMediaAssets((current) =>
+      current.map((asset) =>
+        asset.id === assetId
+          ? {
+              ...asset,
+              [field]: value,
+            }
+          : asset,
+      ),
+    );
+  }
+
+  async function persistMediaAsset(assetId: string) {
+    const asset = mediaAssets.find((entry) => entry.id === assetId);
+    if (!asset) {
+      return;
+    }
+
+    const response = await fetch(`/api/admin/media/${assetId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        altText: asset.altText,
+        caption: asset.caption,
+        credit: asset.credit,
+        isSensitive: asset.isSensitive,
+      }),
+    });
+
+    const data = (await response.json().catch(() => null)) as
+      | { ok: true; data: EditorMediaAsset }
+      | { ok: false; message?: string }
+      | null;
+
+    if (!response.ok || !data?.ok) {
+      setActionNotice({ tone: "warning", message: "Não foi possível atualizar os dados da imagem." });
+      return;
+    }
+
+    setMediaAssets((current) => current.map((entry) => (entry.id === assetId ? data.data : entry)));
+    setActionNotice({ tone: "info", message: "Dados da imagem atualizados." });
+  }
+
+  async function toggleMediaBlur(assetId: string, shouldBlur: boolean) {
+    const response = await fetch(`/api/admin/media/${assetId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ setBlurred: shouldBlur }),
+    });
+
+    const data = (await response.json().catch(() => null)) as
+      | { ok: true; data: EditorMediaAsset }
+      | { ok: false; message?: string }
+      | null;
+
+    if (!response.ok || !data?.ok) {
+      setActionNotice({ tone: "warning", message: "Não foi possível atualizar o desfoque da imagem." });
+      return;
+    }
+
+    setMediaAssets((current) => current.map((entry) => (entry.id === assetId ? data.data : entry)));
+    setActionNotice({ tone: "info", message: shouldBlur ? "Desfoque aplicado." : "Desfoque removido." });
+  }
+
+  async function handleUploadPhoto(event: React.ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    if (!file) {
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("file", file);
+
+    setUploadPending(true);
+    const response = await fetch("/api/admin/media/upload", {
+      method: "POST",
+      body: formData,
+    });
+
+    const data = (await response.json().catch(() => null)) as
+      | { ok: true; data: EditorMediaAsset }
+      | { ok: false; message?: string }
+      | null;
+
+    setUploadPending(false);
+    event.target.value = "";
+
+    if (!response.ok || !data?.ok) {
+      setActionNotice({
+        tone: "error",
+        message: data && "message" in data && data.message ? data.message : "Não foi possível enviar a foto.",
+      });
+      return;
+    }
+
+    setMediaAssets((current) => [...current, data.data]);
+    if (!heroMediaAssetId) {
+      setHeroMediaAssetId(data.data.id);
+    }
+    setActionNotice({ tone: "info", message: "Foto adicionada." });
+  }
+
+  async function generateAiImage() {
+    if (!aiImagePrompt.trim()) {
+      setActionNotice({ tone: "warning", message: "Descreva a ilustração antes de gerar." });
+      return;
+    }
+
+    setAiImagePending(true);
+    const response = await fetch("/api/admin/media/generate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        prompt: aiImagePrompt.trim(),
+        context: [title, summary].filter(Boolean).join("\n"),
+      }),
+    });
+
+    const data = (await response.json().catch(() => null)) as
+      | { ok: true; data: EditorMediaAsset }
+      | { ok: false; message?: string }
+      | null;
+
+    setAiImagePending(false);
+
+    if (!response.ok || !data?.ok) {
+      setActionNotice({
+        tone: "warning",
+        message: data && "message" in data && data.message ? data.message : "Não foi possível gerar a imagem agora.",
+      });
+      return;
+    }
+
+    setAiImageCandidate(data.data);
+    setActionNotice({ tone: "info", message: "Ilustração pronta para revisão." });
+  }
+
+  function useAiGeneratedImage() {
+    if (!aiImageCandidate) {
+      return;
+    }
+
+    setMediaAssets((current) => [...current, aiImageCandidate]);
+    if (!heroMediaAssetId) {
+      setHeroMediaAssetId(aiImageCandidate.id);
+    }
+    setAiImageCandidate(null);
+    setActionNotice({ tone: "info", message: "Ilustração adicionada à notícia." });
   }
 
   async function requestAiSuggestion() {
@@ -467,6 +729,8 @@ export function AdminNewsEditorForm({
   }
 
   function buildPayload() {
+    const heroAsset = heroMediaAssetId ? mediaAssets.find((asset) => asset.id === heroMediaAssetId) : null;
+
     return {
       title: title.trim(),
       slug: slug.trim(),
@@ -474,12 +738,23 @@ export function AdminNewsEditorForm({
       categorySlug: category,
       municipalitySlug: municipality,
       authorId: author || undefined,
-      heroImageUrl: "",
-      heroImageAlt: "",
-      heroImageCaption: imageCaption.trim(),
-      heroImageCredit: imageCredit.trim(),
+      heroImageUrl: heroAsset?.publicUrl || "",
+      heroImageAlt: heroAsset?.altText || "",
+      heroImageCaption: heroAsset?.caption || "",
+      heroImageCredit: heroAsset?.credit || "",
       tags: parseTags(tagInput),
       blocks,
+      media: {
+        assetIds: mediaAssets.map((asset) => asset.id),
+        heroAssetId: heroMediaAssetId || undefined,
+        metadata: mediaAssets.map((asset) => ({
+          id: asset.id,
+          altText: asset.altText || undefined,
+          caption: asset.caption || undefined,
+          credit: asset.credit || undefined,
+          isSensitive: asset.isSensitive,
+        })),
+      },
       expectedUpdatedAt: expectedUpdatedAt || undefined,
     };
   }
@@ -778,6 +1053,47 @@ export function AdminNewsEditorForm({
           </div>
         </div>
       ) : null}
+
+      <div className="space-y-2 rounded-md border border-border bg-surface-secondary p-3">
+        <p className="text-caption font-semibold uppercase tracking-[0.08em] text-brand-secondary">Imagem</p>
+        <p className="text-body-sm text-text-muted">Gerar ilustração com base no contexto da notícia.</p>
+
+        <label htmlFor="ai-image-prompt" className="text-body-sm font-semibold">
+          Como você gostaria da imagem?
+        </label>
+        <textarea
+          id="ai-image-prompt"
+          value={aiImagePrompt}
+          onChange={(event) => setAiImagePrompt(event.target.value)}
+          rows={3}
+          placeholder="Ex.: Ilustração da zona rural de Rondônia durante o amanhecer."
+          className="w-full rounded-md border border-border bg-surface px-3 py-2"
+        />
+
+        {!aiImageProviderAvailable ? (
+          <p className="rounded-md border border-semantic-warning/40 bg-semantic-warning/10 px-3 py-2 text-body-sm text-semantic-warning">
+            Geração visual por IA indisponível neste ambiente. Você pode continuar com upload manual.
+          </p>
+        ) : null}
+
+        <Button onClick={generateAiImage} disabled={!aiImageProviderAvailable || aiImagePending}>
+          {aiImagePending ? "Gerando ilustração..." : "Gerar ilustração"}
+        </Button>
+
+        {aiImageCandidate ? (
+          <div className="space-y-2 rounded-md border border-border bg-surface p-3">
+            <div className="relative aspect-[16/9] overflow-hidden rounded-md border border-border bg-surface-secondary">
+              <Image src={aiImageCandidate.publicUrl} alt="Prévia da ilustração gerada por IA" fill sizes="(max-width: 768px) 100vw, 360px" className="object-cover" />
+            </div>
+            <p className="text-caption text-text-muted">Ilustração gerada por inteligência artificial.</p>
+            <div className="flex flex-wrap gap-2">
+              <Button variant="secondary" onClick={useAiGeneratedImage}>Usar na notícia</Button>
+              <Button variant="outline" onClick={generateAiImage} disabled={aiImagePending}>Gerar outra</Button>
+              <Button variant="ghost" onClick={() => setAiImageCandidate(null)}>Descartar</Button>
+            </div>
+          </div>
+        ) : null}
+      </div>
     </article>
   );
 
@@ -976,29 +1292,103 @@ export function AdminNewsEditorForm({
             </div>
           </div>
 
-          <div className="grid gap-3 md:grid-cols-2">
-            <div className="space-y-1.5">
-              <label htmlFor="news-caption" className="text-body-sm font-semibold">
-                Legenda da imagem
+          <div className="space-y-3 rounded-md border border-border bg-surface-secondary p-3">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <h3 className="text-body font-semibold">Imagens</h3>
+              <label className="inline-flex min-h-11 cursor-pointer items-center rounded-md border border-border-strong bg-surface px-3 text-body-sm font-semibold">
+                {uploadPending ? "Enviando foto..." : "+ Adicionar foto"}
+                <input type="file" accept="image/jpeg,image/png,image/webp" className="sr-only" onChange={handleUploadPhoto} disabled={uploadPending} />
               </label>
-              <input
-                id="news-caption"
-                value={imageCaption}
-                onChange={(event) => setImageCaption(event.target.value)}
-                className="h-11 w-full rounded-md border border-border bg-surface px-3"
-              />
             </div>
-            <div className="space-y-1.5">
-              <label htmlFor="news-credit" className="text-body-sm font-semibold">
-                Crédito da imagem
-              </label>
-              <input
-                id="news-credit"
-                value={imageCredit}
-                onChange={(event) => setImageCredit(event.target.value)}
-                className="h-11 w-full rounded-md border border-border bg-surface px-3"
-              />
-            </div>
+
+            {mediaAssets.length === 0 ? (
+              <p className="text-body-sm text-text-muted">Nenhuma imagem adicionada.</p>
+            ) : (
+              <ul className="space-y-3">
+                {mediaAssets.map((asset) => (
+                  <li key={asset.id} className="rounded-md border border-border bg-surface p-3">
+                    <div className="grid gap-3 md:grid-cols-[120px_minmax(0,1fr)]">
+                      <div className="space-y-2">
+                        <div className="relative aspect-square overflow-hidden rounded-md border border-border bg-surface-secondary">
+                          <Image
+                            src={asset.publicUrl}
+                            alt={asset.altText || "Imagem editorial"}
+                            fill
+                            sizes="120px"
+                            className="object-cover"
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          {heroMediaAssetId === asset.id ? (
+                            <span className="inline-flex rounded-sm border border-brand-secondary bg-brand-accentLight px-2 py-1 text-caption font-semibold text-brand-secondary">
+                              Imagem principal
+                            </span>
+                          ) : null}
+                          {asset.origin === "AI_GENERATED" ? (
+                            <span className="inline-flex rounded-sm border border-border px-2 py-1 text-caption text-text-muted">
+                              IA
+                            </span>
+                          ) : null}
+                          {asset.isBlurred ? (
+                            <span className="inline-flex rounded-sm border border-semantic-warning/40 bg-semantic-warning/10 px-2 py-1 text-caption text-semantic-warning">
+                              Desfocada
+                            </span>
+                          ) : null}
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        <div className="grid gap-2 md:grid-cols-2">
+                          <label className="space-y-1 text-body-sm font-semibold">
+                            Texto alternativo
+                            <input
+                              value={asset.altText}
+                              onChange={(event) => updateMediaField(asset.id, "altText", event.target.value)}
+                              className="h-11 w-full rounded-md border border-border bg-surface px-3"
+                            />
+                          </label>
+                          <label className="space-y-1 text-body-sm font-semibold">
+                            Crédito / fonte
+                            <input
+                              value={asset.credit}
+                              onChange={(event) => updateMediaField(asset.id, "credit", event.target.value)}
+                              className="h-11 w-full rounded-md border border-border bg-surface px-3"
+                            />
+                          </label>
+                        </div>
+
+                        <label className="space-y-1 text-body-sm font-semibold">
+                          Legenda
+                          <input
+                            value={asset.caption}
+                            onChange={(event) => updateMediaField(asset.id, "caption", event.target.value)}
+                            className="h-11 w-full rounded-md border border-border bg-surface px-3"
+                          />
+                        </label>
+
+                        <div className="flex flex-wrap gap-2">
+                          <Button variant="outline" size="sm" onClick={() => setHeroMediaAssetId(asset.id)}>
+                            Definir como principal
+                          </Button>
+                          <Button variant="outline" size="sm" onClick={() => addImageBlock(asset.id)}>
+                            Inserir no corpo
+                          </Button>
+                          <Button variant="outline" size="sm" onClick={() => persistMediaAsset(asset.id)}>
+                            Salvar metadados
+                          </Button>
+                          <Button variant="ghost" size="sm" onClick={() => toggleMediaBlur(asset.id, !asset.isBlurred)}>
+                            {asset.isBlurred ? "Remover desfoque" : "Aplicar desfoque"}
+                          </Button>
+                          <Button variant="ghost" size="sm" onClick={() => removeMediaAsset(asset.id)}>
+                            Remover da notícia
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
 
           <div className="space-y-1.5">
@@ -1053,16 +1443,39 @@ export function AdminNewsEditorForm({
                   </div>
                 </div>
 
-                <textarea
-                  value={toTextareaValue(block)}
-                  onChange={(event) =>
-                    setBlocks((current) =>
-                      current.map((entry, idx) => (idx === index ? updateBlockText(entry, event.target.value) : entry)),
-                    )
-                  }
-                  rows={block.type === "list" ? 5 : 4}
-                  className="w-full rounded-md border border-border bg-surface px-3 py-2 md:text-body"
-                />
+                {block.type === "image" ? (
+                  <div className="space-y-2 rounded-md border border-border bg-surface p-3">
+                    {(() => {
+                      const linkedAsset = mediaAssets.find((asset) => asset.id === block.mediaAssetId);
+                      if (!linkedAsset) {
+                        return <p className="text-body-sm text-semantic-warning">Imagem não encontrada. Reassocie antes de publicar.</p>;
+                      }
+
+                      return (
+                        <>
+                          <div className="relative aspect-[16/9] overflow-hidden rounded-md border border-border bg-surface-secondary">
+                            <Image src={linkedAsset.publicUrl} alt={linkedAsset.altText || "Imagem do corpo"} fill sizes="(max-width: 768px) 100vw, 720px" className="object-cover" />
+                          </div>
+                          <p className="text-caption text-text-muted">
+                            {linkedAsset.caption || "Sem legenda"}
+                            {linkedAsset.credit ? ` • ${linkedAsset.credit}` : ""}
+                          </p>
+                        </>
+                      );
+                    })()}
+                  </div>
+                ) : (
+                  <textarea
+                    value={toTextareaValue(block)}
+                    onChange={(event) =>
+                      setBlocks((current) =>
+                        current.map((entry, idx) => (idx === index ? updateBlockText(entry, event.target.value) : entry)),
+                      )
+                    }
+                    rows={block.type === "list" ? 5 : 4}
+                    className="w-full rounded-md border border-border bg-surface px-3 py-2 md:text-body"
+                  />
+                )}
               </li>
             ))}
           </ul>
